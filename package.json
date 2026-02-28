@@ -1,0 +1,20 @@
+{
+  "name": "hydrobos",
+  "version": "0.2.0",
+  "private": true,
+  "description": "HydroBOS — Hydro Business Operating System Dashboard",
+  "scripts": {
+    "dev": "concurrently -n gateway,identity,widget,client -c blue,cyan,magenta,green \"npm run dev:gateway\" \"npm run dev:identity\" \"npm run dev:widget\" \"npm run dev:client\"",
+    "dev:gateway": "cd services/gateway && npm run dev",
+    "dev:identity": "cd services/identity && npm run dev",
+    "dev:widget": "cd services/widget && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd services/identity && npm run build && cd ../gateway && npm run build && cd ../widget && npm run build && cd ../../client && npm run build",
+    "install:all": "cd services/identity && npm install && cd ../gateway && npm install && cd ../widget && npm install && cd ../../client && npm install",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
