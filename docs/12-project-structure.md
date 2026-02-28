@@ -1,4 +1,4 @@
-# 11 — Project Structure Goals
+# 12 — Project Structure Goals
 
 ## Repository Strategy
 
@@ -20,19 +20,20 @@ hydrobos/
 ├── README.md                           # Project overview (this doc set)
 ├── docs/                              # Documentation (this folder)
 │   ├── 01-vision-and-objectives.md
-│   ├── 02-architecture.md
-│   ├── 03-modules-and-features.md
-│   ├── 04-integration-strategy.md
-│   ├── 05-security-model.md
-│   ├── 06-data-platform-strategy.md
-│   ├── 07-frontend-plan.md
-│   ├── 08-backend-plan.md
-│   ├── 09-ux-design-requirements.md
-│   ├── 10-roadmap.md
-│   └── 11-project-structure.md
+│   ├── 02-roadmap.md
+│   ├── 03-architecture.md
+│   ├── 04-applet-system.md
+│   ├── 05-modules-and-features.md
+│   ├── 06-frontend-plan.md
+│   ├── 07-backend-plan.md
+│   ├── 08-security-model.md
+│   ├── 09-integration-strategy.md
+│   ├── 10-data-platform-strategy.md
+│   ├── 11-ux-design-requirements.md
+│   └── 12-project-structure.md
 │
 ├── marketing/                         # Sales & marketing materials
-│   └── hydrobos-3-pager.md
+│   └── hydrobos-5-pager.md
 │
 ├── packages/                          # Shared libraries (monorepo)
 │   ├── shared-types/                  # TypeScript types shared across all services
@@ -84,6 +85,45 @@ hydrobos/
 │       │   └── index.ts
 │       ├── package.json
 │       └── tsconfig.json
+│
+├── applets/                           # Applet micro-applications (Vite + Vue 3)
+│   ├── applet-sdk/                    # Shared SDK for all applets
+│   │   ├── src/
+│   │   │   ├── hydrobos.ts            # Main SDK class (postMessage bridge)
+│   │   │   ├── types.ts               # Shared types (AppletContext, ThemeConfig)
+│   │   │   ├── composables/           # Vue composables (useHydroBOS, etc.)
+│   │   │   └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── seo-optimizer/                 # First applet: SEO optimization tool
+│   │   ├── applet.manifest.json   # Applet declaration (metadata, permissions)
+│   │   ├── index.html
+│   │   ├── vite.config.ts
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── main.ts                # App bootstrap + SDK init
+│   │   │   ├── App.vue
+│   │   │   ├── views/
+│   │   │   │   ├── DashboardView.vue  # SEO health overview
+│   │   │   │   ├── KeywordsView.vue   # Keyword tracking
+│   │   │   │   ├── PagesView.vue      # Per-page analysis
+│   │   │   │   └── RecommendationsView.vue
+│   │   │   ├── components/
+│   │   │   ├── composables/
+│   │   │   ├── stores/
+│   │   │   └── styles/
+│   │   └── dist/                  # Built output served by HydroBOS host
+│   │
+│   └── _template/                     # Starter template for new applets
+│       ├── applet.manifest.json
+│       ├── index.html
+│       ├── vite.config.ts
+│       └── src/
+│           ├── main.ts
+│           ├── App.vue
+│           └── composables/
+│               └── useHydroBOS.ts
 │
 ├── apps/                              # Deployable applications
 │   │
@@ -287,6 +327,7 @@ graph TB
         TL[tenant-lib]
         AL[audit-lib]
         CS[connector-sdk]
+        AS[applet-sdk]
     end
 
     subgraph "Applications"
@@ -306,6 +347,11 @@ graph TB
         CFR[connector-frigate]
     end
 
+    subgraph "Applets"
+        SEO[seo-optimizer]
+        TMPL[_template]
+    end
+
     WEB --> ST
     GW --> ST
     GW --> TL
@@ -318,6 +364,10 @@ graph TB
     WS --> TL
     EA --> ST
     EA --> CS
+
+    SEO --> AS
+    TMPL --> AS
+    AS --> ST
 
     CSF --> ST
     CSF --> TL
@@ -386,6 +436,7 @@ flowchart TD
 | **Packages** | `@hydrobos/name` | `@hydrobos/shared-types` |
 | **Services** | `kebab-case` | `identity-service`, `api-gateway` |
 | **Connectors** | `connector-{name}` | `connector-servicefusion` |
+| **Applets** | `{applet-name}/` | `seo-optimizer/` |
 | **Files** | `kebab-case.ts` | `tenant-context.ts` |
 | **Classes** | `PascalCase` | `TenantContextMiddleware` |
 | **Functions** | `camelCase` | `mapGroupsToRoles()` |
@@ -394,3 +445,4 @@ flowchart TD
 | **API Routes** | `kebab-case` | `/api/v1/identity/users` |
 | **Environment Vars** | `UPPER_SNAKE_CASE` | `AZURE_CLIENT_ID` |
 | **Docker Images** | `hydrobos/{service}` | `hydrobos/identity-service` |
+| **Applet Manifests** | `applet.manifest.json` | `applets/seo-optimizer/applet.manifest.json` |

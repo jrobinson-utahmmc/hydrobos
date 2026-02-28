@@ -1,4 +1,4 @@
-# 02 — Technical Architecture & Microservices Design
+# 03 — Technical Architecture & Microservices Design
 
 ## Architecture Overview
 
@@ -25,6 +25,13 @@ graph TB
         PAS[Policy / Authorization<br/>Service]
         WLE[Widget & Layout<br/>Engine]
         FE[Frontend / UI<br/>Service - Next.js]
+        ART[Applet Runtime<br/>iframe Manager]
+    end
+
+    subgraph "Applets (Vite + Vue 3)"
+        A_SEO[SEO Optimizer<br/>Applet]
+        A_NET[Network Monitor<br/>Applet - Future]
+        A_CUST[Custom Applets<br/>via Template API]
     end
 
     subgraph "Connector Services"
@@ -66,6 +73,7 @@ graph TB
     GW --> PAS
     GW --> FE
     GW --> WLE
+    GW --> ART
     GW --> C_SF
     GW --> C_UF
     GW --> C_GSC
@@ -74,6 +82,12 @@ graph TB
     GW --> C_CF
     GW --> C_FR
     GW --> C_PX
+
+    FE --> ART
+    ART --> A_SEO
+    ART --> A_NET
+    ART --> A_CUST
+    A_SEO -->|"postMessage"| ART
 
     IAS --> MDB
     PAS --> MDB
@@ -110,10 +124,11 @@ graph TB
 | Service | Domain | Responsibilities |
 |---------|--------|-----------------|
 | **API Gateway** | Ingress | Single entry point for all client/external requests; validates OIDC tokens; authorization enforcement; request routing; rate limiting; logging; tenant context extraction |
-| **Identity & Auth Service** | Identity | Entra ID integration via OIDC/OAuth 2.0; login redirects; JWT processing; session management; user/group sync from Azure AD; role mapping |
+| **Identity & Auth Service** | Identity | Local account auth (bcrypt); optional Entra ID integration via OIDC/OAuth 2.0; login flows; JWT processing; session management; user/group management; role mapping |
 | **Policy / Authorization Service** | Security | Central policy engine; RBAC/ABAC evaluation; answers "Can user X do action Y on resource Z given context C?"; context-aware (MFA status, device posture) |
 | **Frontend / UI Service** | Presentation | Serves Next.js application and static assets; main layout, navigation, widgets, user interactions; connects to backend via API Gateway |
 | **Widget & Layout Engine** | UI Config | Dashboard and widget configuration management; stores/retrieves user-specific layouts; widget registry; future marketplace host |
+| **Applet Runtime** | Extension | Manages applet lifecycle; iframe container; host ↔ applet postMessage bridge; auth token provisioning; theme sync; API request proxy for applets |
 | **Connector Services** (per integration) | Integration | Each handles auth to an external service, polls/listens for data, normalizes to canonical model, may execute commands |
 | **Data Services** | Storage | Core data storage and retrieval; MongoDB for config/users; time-series for metrics; manages data retention, partitioning, multi-tenant isolation |
 | **Event & Messaging Bus** | Communication | Async inter-service communication; connectors publish events, services subscribe; decoupling and event-driven architecture |
@@ -149,16 +164,19 @@ graph TB
 flowchart TD
     A[User Request] --> B{Has Valid Session?}
     B -->|Yes| C[Extract User Context]
-    B -->|No| D[Redirect to Entra ID]
-    D --> E[User Authenticates + MFA]
-    E --> F[Receive Auth Code]
-    F --> G[Exchange for Tokens]
-    G --> H[Validate ID Token / JWT]
-    H --> I[Extract Claims<br/>name, email, groups]
-    I --> J[Sync User Record to DB]
-    J --> K[Map Groups → Roles]
-    K --> L[Create Session]
-    L --> C
+    B -->|No| D{Auth Method?}
+    D -->|Local Account| LA[Validate Email + Password]
+    LA --> LB{Valid?}
+    LB -->|Yes| J[Create Session]
+    LB -->|No| LC[401 Unauthorized]
+    D -->|Microsoft SSO| E[Redirect to Entra ID]
+    E --> F[User Authenticates + MFA]
+    F --> G[Receive Auth Code]
+    G --> H[Exchange for Tokens]
+    H --> I[Validate ID Token / JWT]
+    I --> J
+    J --> K[Map Roles]
+    K --> C
     C --> M[Attach User Context to Request]
     M --> N[Forward to Service]
 ```
@@ -435,6 +453,7 @@ graph TB
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | **Frontend Framework** | Next.js + React + TypeScript | SSR for SEO/performance, React ecosystem, type safety |
+| **Applet Framework** | Vite + Vue 3 + TypeScript | Fast HMR, lightweight builds, ideal for iframe-embedded micro-apps |
 | **Backend Language** | Node.js + TypeScript | Stack synergy with frontend, async I/O for connectors, broad ecosystem |
 | **Service Framework** | NestJS | Modular architecture, built-in DI, TypeScript-native, decorator-based |
 | **API Gateway** | Kong or custom (Express) | Mature plugin ecosystem; fallback to custom for full control |

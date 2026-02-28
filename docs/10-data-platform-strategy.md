@@ -1,4 +1,4 @@
-# 06 — Data Platform Strategy
+# 10 — Data Platform Strategy
 
 ## Evolution from Product DB to Lakehouse
 

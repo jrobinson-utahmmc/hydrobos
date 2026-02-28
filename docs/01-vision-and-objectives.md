@@ -2,7 +2,7 @@
 
 ## Executive Vision
 
-Build a **modern "Enterprise OS" dashboard** — a unified, extensible platform that serves as a **single pane of glass** for all critical business, IT, and security operations. This platform functions as an internal **control plane** for the organization's day-to-day operations and is designed to be productized as a **scalable SaaS/PaaS** offering for external customers.
+Build a **modern Business Operating System dashboard** — a unified, extensible platform that serves as a **single pane of glass** for all critical business, IT, and security operations. This platform functions as an internal **control plane** for the organization's day-to-day operations and is designed to be productized as a **scalable SaaS/PaaS** offering for external customers.
 
 It centralizes multiple tools and systems into one cohesive, user-friendly dashboard, integrating:
 
@@ -13,7 +13,7 @@ It centralizes multiple tools and systems into one cohesive, user-friendly dashb
 - Security controls (digital + physical)
 - Third-party service connectors
 
-The end goal is a comprehensive **"Company Operating System"** that:
+The end goal is a comprehensive **Business Operating System** that:
 
 1. **Increases visibility and efficiency** across the organization
 2. **Enforces strong security by design**
@@ -265,7 +265,7 @@ graph LR
 | Metric | Target |
 |--------|--------|
 | **Time to onboard new integration** | < 2 weeks for a standard API connector |
-| **User authentication** | 100% via Entra ID SSO (no local passwords) |
+| **User authentication** | Local accounts + optional Entra ID SSO |
 | **Uptime SLA** | 99.9% for cloud-hosted components |
 | **Tenant data isolation** | Zero cross-tenant data leakage (verified by pen test) |
 | **UI page load** | < 2 seconds for dashboard with 10+ widgets |

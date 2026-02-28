@@ -1,4 +1,4 @@
-# 05 — Security Model
+# 08 — Security Model
 
 ## Zero Trust Alignment
 
@@ -7,7 +7,7 @@ HydroBOS is designed around **Zero Trust Architecture** (ZTA) principles. No use
 ```mermaid
 graph TB
     subgraph "Zero Trust Pillars in HydroBOS"
-        ID["🔐 IDENTITY<br/>Who is making the request?<br/>• Entra ID SSO<br/>• MFA enforcement<br/>• Session validation"]
+        ID["🔐 IDENTITY<br/>Who is making the request?<br/>• Local accounts (email/pass)<br/>• Optional Entra ID SSO<br/>• MFA enforcement<br/>• Session validation"]
         DEV["💻 DEVICE<br/>Is the device trusted?<br/>• Conditional access<br/>• Compliance status<br/>• Device posture checks"]
         ACC["🎯 ACCESS<br/>What are they allowed to do?<br/>• RBAC roles<br/>• ABAC context policies<br/>• Least-privilege scope"]
         NET["🌐 NETWORK<br/>Where is the request from?<br/>• IP allowlisting<br/>• Network segmentation<br/>• Encrypted transport"]
@@ -29,50 +29,67 @@ graph TB
 
 ## Authentication Model
 
-### SSO with Microsoft Entra ID
+### Dual Authentication: Local Accounts + Optional SSO
 
-All authentication is handled by **Microsoft Entra ID** (Azure AD). HydroBOS does **not** store passwords.
+HydroBOS supports **two authentication methods**. Local accounts are the **primary method** — always available. Microsoft Entra ID SSO is an **optional connector** added by admin configuration.
 
 **Key Properties:**
-- **Protocol:** OpenID Connect (OIDC) over OAuth 2.0
-- **Token Format:** JWT (JSON Web Tokens)
-- **MFA:** Enforced at the IdP level via Entra ID Conditional Access
-- **Passwordless:** Supports Windows Hello, FIDO2 keys, Microsoft Authenticator
+- **Local Auth:** bcrypt-hashed passwords stored in MongoDB; email + password login
+- **SSO (Optional):** OpenID Connect (OIDC) via Microsoft Entra ID when connector is enabled
+- **Token Format:** JWT (JSON Web Tokens) for API authorization
+- **MFA:** Supported via Entra ID Conditional Access (SSO users); TOTP planned for local users
 - **Session Management:** Server-side sessions backed by Redis; configurable timeout
 
 ```mermaid
 flowchart TD
     A[User Navigates to HydroBOS] --> B{Valid Session?}
     B -->|Yes| C[Load Dashboard]
-    B -->|No| D[Redirect to Entra ID /authorize]
-    D --> E[User Signs In + MFA]
-    E --> F[Entra ID Issues Auth Code]
-    F --> G[HydroBOS Exchanges Code for Tokens]
-    G --> H[Validate ID Token]
-    H --> I{Token Valid?}
-    I -->|No| J[Reject — Redirect to Login]
-    I -->|Yes| K[Extract Claims<br/>sub, name, email, groups, roles]
-    K --> L[Create/Update Local User Record]
-    L --> M[Establish Server Session]
-    M --> C
-
-    C --> N{Session Expired?}
-    N -->|Yes| O[Attempt Silent Token Refresh]
-    O --> P{Refresh Succeeded?}
-    P -->|Yes| C
-    P -->|No| D
+    B -->|No| D[Show Login Page]
+    
+    D --> E{Login Method?}
+    
+    E -->|Local Account| F[Email + Password Form]
+    F --> G[Validate bcrypt Hash]
+    G --> H{Valid?}
+    H -->|Yes| I[Create Session in Redis]
+    H -->|No| J[Show Error]
+    
+    E -->|Microsoft SSO| K[Redirect to Entra ID /authorize]
+    K --> L[User Signs In + MFA]
+    L --> M[Entra ID Issues Auth Code]
+    M --> N[Exchange Code for Tokens]
+    N --> O[Validate ID Token]
+    O --> P{Token Valid?}
+    P -->|Yes| Q[Sync User Record]
+    Q --> I
+    P -->|No| J
+    
+    I --> C
+    
+    C --> R{Session Expired?}
+    R -->|Yes| S{SSO User?}
+    S -->|Yes| T[Attempt Silent Token Refresh]
+    S -->|No| D
+    T --> U{Refresh OK?}
+    U -->|Yes| C
+    U -->|No| D
 ```
 
-### Token Validation Checklist
+### First-Run: Admin Account Bootstrap
 
-| Check | Description |
-|-------|-------------|
-| **Signature** | Verify JWT signature using Entra ID's public keys (JWKS endpoint) |
-| **Issuer** | Must match expected Entra ID tenant issuer URL |
-| **Audience** | Must match our application's client ID |
-| **Expiration** | Token must not be expired (`exp` claim) |
-| **Not Before** | Token must be active (`nbf` claim) |
-| **Nonce** | Must match the nonce sent in the auth request (prevent replay) |
+On first deployment, HydroBOS detects an empty database and forces the creation of an initial admin account. This account uses **local authentication** (email + password) — no external IdP dependency required to get started.
+
+### Password Security (Local Accounts)
+
+| Control | Implementation |
+|---------|---------------|
+| **Hashing** | bcrypt with cost factor 12+ |
+| **Minimum Length** | 12 characters |
+| **Complexity** | Configurable rules (uppercase, number, symbol) |
+| **Breach Check** | Optional HaveIBeenPwned API check on password set |
+| **Reset Flow** | Secure time-limited email tokens |
+| **Lockout** | 5 failed attempts → 15-minute lockout |
+| **History** | Last 5 passwords cannot be reused |
 
 ---
 
@@ -80,11 +97,15 @@ flowchart TD
 
 ### Role-Based Access Control (RBAC)
 
-Roles are mapped from **Azure AD groups** to in-app permissions. Each role defines which modules, actions, and data a user can access.
+Roles can be assigned **locally by admin** or **mapped from Azure AD groups** when Entra ID SSO is enabled. Both sources merge into the same permission system.
 
 ```mermaid
 graph TB
-    subgraph "Entra ID"
+    subgraph "Local Role Assignment"
+        LA[Admin Assigns Role<br/>via User Management UI]
+    end
+
+    subgraph "Entra ID (Optional)"
         G1[AD Group:<br/>HydroBOS-Admins]
         G2[AD Group:<br/>HydroBOS-ITOps]
         G3[AD Group:<br/>HydroBOS-Security]
@@ -108,6 +129,11 @@ graph TB
         P5[Home + Docs<br/>Limited Scope]
     end
 
+    LA --> R1
+    LA --> R2
+    LA --> R3
+    LA --> R4
+    LA --> R5
     G1 --> R1 --> P1
     G2 --> R2 --> P2
     G3 --> R3 --> P3
@@ -168,7 +194,7 @@ flowchart TD
 
 | Attribute | Source | Example Policy |
 |-----------|--------|---------------|
-| `mfa_completed` | Entra ID token claims | Require MFA for admin actions |
+| `mfa_completed` | Entra ID token claims / TOTP check | Require MFA for admin actions |
 | `device_compliant` | Entra ID device management | Block non-compliant devices from Security Center |
 | `ip_address` | Request metadata | Restrict firewall config changes to office IPs |
 | `time_of_day` | Server clock | Restrict physical access changes to business hours |
@@ -354,7 +380,7 @@ flowchart TD
 
 - **Two-Person Approval:** Critical actions (firewall changes, role escalation, tenant deletion) require approval from a second authorized user
 - **Access Reviews:** Periodic (quarterly) automated reviews of user access; managers approve or revoke
-- **Automatic Deprovisioning:** When a user is disabled in Entra ID, all HydroBOS access is immediately revoked
+- **Automatic Deprovisioning:** When a user is disabled in Entra ID (SSO users) or deactivated locally, all HydroBOS access is immediately revoked
 - **Data Retention Policies:** Configurable per-tenant retention periods for audit logs and connector data
 - **Privacy Controls:** PII handling follows GDPR principles; data minimization; purpose limitation
 

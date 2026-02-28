@@ -1,4 +1,6 @@
-# 08 — Backend Implementation Plan
+# 07 — Backend Implementation Plan
+
+> **Backend development starts with the API Gateway, auth middleware, and database layer (Phase 1).** Local account authentication comes in Phase 2–4; Entra ID SSO is layered on later as an optional connector (Phase 5).
 
 ## Stack & Framework
 
@@ -10,7 +12,7 @@
 | **API Format** | REST (JSON) | Simplicity, broad client support; GraphQL considered for future |
 | **Validation** | class-validator + class-transformer | Decorator-based DTO validation in NestJS |
 | **ORM / ODM** | Mongoose (MongoDB) + TypeORM (PostgreSQL) | Flexible document mapping; relational when needed |
-| **Auth Library** | passport + passport-azure-ad | Battle-tested OIDC/OAuth flows for Node.js |
+| **Auth Library** | passport + bcrypt + passport-azure-ad | Local auth (bcrypt) first; Entra ID OIDC added later as optional connector |
 | **Testing** | Jest + Supertest | Unit and integration testing |
 | **Containers** | Docker + Docker Compose | Local dev, CI, and production deployment |
 
@@ -76,9 +78,68 @@ service-name/
 
 ---
 
-## Microsoft Entra ID Integration
+## Authentication Architecture
 
-### OIDC Authentication Flow
+### Dual Auth Model: Local Accounts + Optional Entra ID SSO
+
+HydroBOS supports **two authentication methods** that can work independently or together:
+
+1. **Local accounts** (always available) — email + password stored with bcrypt hashing
+2. **Microsoft Entra ID SSO** (optional connector) — OIDC/OAuth 2.0 redirect flow
+
+### Local Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant FE as Next.js Frontend
+    participant GW as API Gateway
+    participant Auth as Identity Service
+    participant DB as MongoDB
+    participant Redis as Redis Sessions
+
+    Browser->>FE: Navigate to /login
+    FE->>Browser: Show email + password form
+    Browser->>GW: POST /auth/login { email, password }
+    GW->>Auth: Forward
+    Auth->>DB: Find user by email
+    DB->>Auth: User record (with hashed password)
+    Auth->>Auth: bcrypt.compare(password, hash)
+    
+    alt Password Valid
+        Auth->>Redis: Create session
+        Auth->>Browser: Set session cookie + redirect to /dashboard
+    else Password Invalid
+        Auth->>Browser: 401 Invalid credentials
+    end
+```
+
+### First-Run Admin Bootstrap
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant FE as Next.js Frontend
+    participant GW as API Gateway
+    participant Auth as Identity Service
+    participant DB as MongoDB
+
+    Browser->>FE: Navigate to app
+    FE->>GW: GET /auth/status
+    GW->>Auth: Check if any users exist
+    Auth->>DB: count users
+    DB->>Auth: 0 users
+    Auth->>FE: { firstRun: true }
+    FE->>Browser: Show Setup Wizard
+    
+    Browser->>GW: POST /auth/setup { orgName, email, password }
+    GW->>Auth: Forward
+    Auth->>Auth: Hash password with bcrypt
+    Auth->>DB: Create org record + admin user (role: platform_admin)
+    Auth->>Browser: Set session cookie + redirect to /dashboard
+```
+
+### Entra ID SSO Flow (Phase 5 — Optional Connector)
 
 ```mermaid
 sequenceDiagram
@@ -122,7 +183,7 @@ sequenceDiagram
 
 ### Implementation Details
 
-**OIDC Configuration:**
+**OIDC Configuration (configured by admin in settings):**
 ```typescript
 // Pseudocode — NestJS OIDC Strategy
 {
@@ -344,6 +405,20 @@ flowchart TD
     H -->|"/api/connectors/unifi/*"| M[UniFi Connector]
     H -->|"/api/connectors/gsc/*"| N[Google SC Connector]
     H -->|"/*"| O[Frontend Service]
+```
+
+### Applet API Proxy
+
+The API Gateway also proxies API requests from applets running in iframes:
+
+```mermaid
+flowchart TD
+    A[Applet iframe] -->|"postMessage"| B[Host Bridge]
+    B -->|"REST call"| C[API Gateway]
+    C --> D{Permission Check}
+    D -->|"Allowed"| E[Route to Service/Connector]
+    D -->|"Denied"| F[403 Forbidden]
+    E --> G[Return Data to Applet]
 ```
 
 ---

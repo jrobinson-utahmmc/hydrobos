@@ -1,8 +1,8 @@
-# 03 — Core Modules & Features
+# 05 — Core Modules & Features
 
 ## Product Concept
 
-HydroBOS is a **central operating system for the company's internal workflows and data**. It provides an at-a-glance view of company health and operations, and allows performing both high-level and low-level tasks from one interface.
+HydroBOS is a **central business operating system for the company's internal workflows and data**. It provides an at-a-glance view of company health and operations, and allows performing both high-level and low-level tasks from one interface.
 
 Key functional **modules** (or "micro-applications") span multiple domains. Each module appears as part of the unified web interface and follows consistent design and navigation principles.
 

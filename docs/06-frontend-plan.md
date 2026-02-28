@@ -1,4 +1,6 @@
-# 07 — Frontend Implementation Plan
+# 06 — Frontend Implementation Plan
+
+> **The frontend is Phase 0 — we build the UI shell first, then wire backend services incrementally.** This "frontend-first" approach ensures we always have something visible and demonstrable.
 
 ## Framework & Stack
 
@@ -65,28 +67,35 @@ flowchart TD
     B -->|Yes| C[Load Dashboard]
     B -->|No| D[Show Login Page]
     
-    D --> E{Dev Mode?}
-    E -->|Yes| F[Show Dev Login<br/>admin/admin]
-    E -->|No| G[Show SSO Button Only]
+    D --> E[Email + Password Form]
+    E --> F{Valid Credentials?}
+    F -->|Yes| G[Create Session]
+    G --> C
+    F -->|No| H[Show Error Message]
+    H --> E
     
-    F --> H[Dev Auth Bypass]
-    G --> I[Redirect to Entra ID]
-    I --> J[Microsoft Sign-In + MFA]
-    J --> K[Redirect Back with Token]
-    K --> L[Validate Token]
-    L --> M{Valid?}
-    M -->|Yes| C
-    M -->|No| N[Error Page → Retry]
-    H --> C
+    D --> I{SSO Enabled?}
+    I -->|Yes| J[Show 'Sign in with Microsoft' Button]
+    J --> K[Redirect to Entra ID]
+    K --> L[Microsoft Sign-In + MFA]
+    L --> M[Redirect Back with Token]
+    M --> N[Validate Token + Sync User]
+    N --> G
+    I -->|No| O[Local Auth Only]
+
+    D --> P{First Run?}
+    P -->|Yes| Q[Redirect to Setup Wizard]
 ```
 
 ### Login Page Design
 
 - Clean, branded login page with company logo
-- Primary "Sign in with Microsoft" button (SSO)
-- Dev environment only: basic credentials form (`admin/admin`) behind feature flag
+- **Primary:** email + password form (local accounts — always available)
+- **Optional:** "Sign in with Microsoft" SSO button (shown when Entra ID connector is configured)
+- First-run detection redirects to setup wizard for initial admin creation
 - Error handling with clear messages for common issues
-- "Having trouble?" link to IT support
+- "Forgot password?" link for self-service password reset
+- Dev environment: feature-flagged quick login for testing
 
 ---
 
@@ -167,6 +176,7 @@ classDiagram
 | **Alert Feed** | Scrolling alert/event list | Security alerts, System notifications |
 | **Map View** | Geographic visualization | Site locations, Client geo |
 | **Embedded View** | iframe or micro-frontend | Camera feed, External tool |
+| **Applet Widget** | Compact applet mini-view | SEO score gauge, Keyword trends |
 
 ### Drag-and-Drop Layout
 
@@ -342,4 +352,5 @@ graph LR
 | **Analytics** | Report Builder, Saved Reports, SEO Dashboard, CRM Dashboard, Custom Dashboards |
 | **Network** | Network Map, Device List, Device Detail, Firewall Rules, Client List |
 | **NVR** | Camera Grid, Camera Detail, Event Timeline, Alert Config |
-| **Admin** | Tenant List, Tenant Detail, System Config, Platform Health, Connector Config |
+| **Applets** | Applet Launcher, Applet Full Panel (iframe container), Applet Settings |
+| **Admin** | Tenant List, Tenant Detail, System Config, Platform Health, Connector Config, Applet Management |
