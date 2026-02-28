@@ -4,8 +4,6 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Puzzle,
-  Users,
-  Shield,
   Settings,
   HelpCircle,
   Droplets,
@@ -18,9 +16,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/' },
   { icon: LayoutGrid, label: 'Dashboards', path: '/dashboards' },
   { icon: Puzzle, label: 'Widget Builder', path: '/widget-builder' },
-  { icon: Users, label: 'Users', path: '/users', badge: 'Soon' },
-  { icon: Shield, label: 'Security', path: '/security', badge: 'Soon' },
-  { icon: Settings, label: 'Settings', path: '/settings', badge: 'Soon' },
+  { icon: Settings, label: 'Admin', path: '/admin' },
   { icon: HelpCircle, label: 'Help', path: '/help', badge: 'Soon' },
 ];
 

@@ -90,6 +90,24 @@ app.use(
   })
 );
 
+// /api/organization/* → identity:5001/organization/*
+app.use(
+  '/api/organization',
+  createProxyMiddleware({
+    ...proxyOptions(config.services.identity),
+    pathRewrite: { '^/': '/organization/' },
+  })
+);
+
+// /api/tenants/* → identity:5001/tenants/*
+app.use(
+  '/api/tenants',
+  createProxyMiddleware({
+    ...proxyOptions(config.services.identity),
+    pathRewrite: { '^/': '/tenants/' },
+  })
+);
+
 // ── Route: Widget Service ──
 // /api/dashboards/* → widget:5002/dashboards/*
 app.use(

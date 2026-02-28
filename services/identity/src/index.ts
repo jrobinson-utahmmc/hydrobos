@@ -8,6 +8,8 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import ssoConfigRoutes from './routes/sso-config';
 import systemRoutes from './routes/system';
+import organizationRoutes from './routes/organization';
+import tenantRoutes from './routes/tenants';
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/sso/config', ssoConfigRoutes);
 app.use('/system', systemRoutes);
+app.use('/organization', organizationRoutes);
+app.use('/tenants', tenantRoutes);
 
 // Health
 app.get('/health', (_req, res) => {

@@ -5,6 +5,7 @@ import { SetupPage } from './pages/SetupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DashboardsPage } from './pages/DashboardsPage';
 import { WidgetBuilderPage } from './pages/WidgetBuilderPage';
+import { AdminPage } from './pages/AdminPage';
 import { AppShell } from './components/layout/AppShell';
 import { Loader2 } from 'lucide-react';
 
@@ -87,6 +88,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <WidgetBuilderPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/:tab"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         }
       />

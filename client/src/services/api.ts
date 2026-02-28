@@ -109,3 +109,84 @@ export const widgetApi = {
   dataProxy: (config: { url: string; method?: string; headers?: any; authentication?: any }) =>
     apiRequest('/widgets/data-proxy', { method: 'POST', body: JSON.stringify(config) }),
 };
+
+// ── Organization API ──
+
+export const organizationApi = {
+  get: () =>
+    apiRequest<{ configured: boolean; data?: any }>('/organization'),
+
+  save: (data: {
+    name: string;
+    domain?: string;
+    logoUrl?: string;
+    primaryColor?: string;
+    timezone?: string;
+    locale?: string;
+    features?: Record<string, boolean>;
+    contact?: Record<string, string>;
+    subscription?: { plan: string; maxUsers: number; maxTenants: number };
+  }) =>
+    apiRequest('/organization', { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+// ── Tenant API ──
+
+export const tenantApi = {
+  list: (params?: { status?: string; page?: number; pageSize?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.pageSize) query.set('pageSize', params.pageSize.toString());
+    const qs = query.toString();
+    return apiRequest<{ data: any[]; total: number; page: number; totalPages: number }>(
+      `/tenants${qs ? `?${qs}` : ''}`
+    );
+  },
+
+  get: (id: string) =>
+    apiRequest<{ data: any }>(`/tenants/${id}`),
+
+  create: (data: {
+    name: string;
+    description?: string;
+    settings?: { maxUsers?: number; storageQuotaMb?: number; features?: string[] };
+    metadata?: { industry?: string; region?: string; notes?: string };
+  }) =>
+    apiRequest('/tenants', { method: 'POST', body: JSON.stringify(data) }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/tenants/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  delete: (id: string) =>
+    apiRequest(`/tenants/${id}`, { method: 'DELETE' }),
+
+  provision: (id: string) =>
+    apiRequest(`/tenants/${id}/provision`, { method: 'POST' }),
+};
+
+// ── SSO Config API ──
+
+export const ssoConfigApi = {
+  get: () =>
+    apiRequest<{ configured: boolean; config?: any }>('/sso/config'),
+
+  save: (data: {
+    enabled: boolean;
+    tenantId: string;
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+    scopes?: string[];
+    groupRoleMap?: Record<string, string>;
+    autoProvision?: boolean;
+    defaultRole?: string;
+  }) =>
+    apiRequest('/sso/config', { method: 'PUT', body: JSON.stringify(data) }),
+
+  delete: () =>
+    apiRequest('/sso/config', { method: 'DELETE' }),
+
+  testConnection: () =>
+    apiRequest<{ enabled: boolean; provider: string | null }>('/auth/sso/status'),
+};

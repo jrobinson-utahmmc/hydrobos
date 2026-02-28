@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { User } from '../models/User';
+import { Organization } from '../models/Organization';
+import { Tenant } from '../models/Tenant';
 import { getSsoConfig } from '../services/entra';
 
 const router = Router();
@@ -9,17 +11,21 @@ const router = Router();
  */
 router.get('/status', async (_req: Request, res: Response) => {
   try {
-    const [userCount, ssoConfig] = await Promise.all([
+    const [userCount, ssoConfig, org, tenantCount] = await Promise.all([
       User.countDocuments(),
       getSsoConfig(),
+      Organization.findOne().select('name slug domain'),
+      Tenant.countDocuments({ status: { $ne: 'decommissioned' } }),
     ]);
 
     res.json({
       initialized: userCount > 0,
-      version: '0.2.0',
+      version: '0.3.0',
       name: 'HydroBOS',
       ssoEnabled: ssoConfig?.enabled ?? false,
       ssoProvider: ssoConfig?.enabled ? 'Microsoft Entra ID' : undefined,
+      organization: org ? { name: org.name, slug: org.slug, domain: org.domain } : null,
+      tenantCount,
     });
   } catch (error) {
     console.error('System status error:', error);

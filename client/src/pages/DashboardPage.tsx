@@ -11,6 +11,7 @@ import {
   Zap,
   Puzzle,
   LayoutGrid,
+  Settings,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,9 +30,9 @@ const kpiCards = [
 ];
 
 const systemInfo = [
-  { label: 'Version', value: '0.2.0 (Stage 2)' },
+  { label: 'Version', value: '0.3.0 (Stage 3)' },
   { label: 'Architecture', value: 'Microservices' },
-  { label: 'Database', value: 'MongoDB Connected' },
+  { label: 'Database', value: 'MongoDB + Redis' },
   { label: 'Auth Method', value: 'Local + Entra ID SSO' },
   { label: 'API Gateway', value: 'Express Gateway :5000' },
   { label: 'Services', value: 'Identity · Widget · Gateway' },
@@ -40,8 +41,8 @@ const systemInfo = [
 const quickActions = [
   { label: 'Widget Builder', icon: Puzzle, description: 'Create custom widgets', path: '/widget-builder' },
   { label: 'My Dashboards', icon: LayoutGrid, description: 'Manage dashboards', path: '/dashboards' },
-  { label: 'Manage Users', icon: Users, description: 'User management', path: '/users' },
-  { label: 'Security', icon: Shield, description: 'Security & SSO', path: '/security' },
+  { label: 'Admin Settings', icon: Settings, description: 'Org, tenants & SSO', path: '/admin' },
+  { label: 'Security & SSO', icon: Shield, description: 'Entra ID config', path: '/admin' },
 ];
 
 export function DashboardPage() {
@@ -149,19 +150,19 @@ export function DashboardPage() {
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Stage 2 — Microservices + Widgets</h3>
-                <p className="text-sm text-blue-100">SSO, Widget Builder, Dashboard Engine</p>
+                <h3 className="font-semibold text-lg">Stage 3 — Admin Portal & Multi-Tenancy</h3>
+                <p className="text-sm text-blue-100">Organization, Tenants, Entra ID SSO, Users</p>
               </div>
             </div>
             <p className="text-sm text-blue-100 max-w-2xl leading-relaxed">
               HydroBOS now runs on a microservices architecture with an API Gateway, Identity
-              Service (local + Entra ID SSO), and Widget Service. Use the Widget Builder to create
-              custom dashboards from templates, third-party APIs, datasets, and graphics.
+              Service (local + Entra ID SSO), and Widget Service. Multi-tenant database isolation,
+              admin portal, and organization management are live.
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               {[
                 'Microservices ✓', 'API Gateway ✓', 'Entra ID SSO ✓',
-                'Widget Engine ✓', 'Widget Builder ✓', 'Data Proxy ✓', 'Dark Mode ✓',
+                'Widget Engine ✓', 'Multi-Tenant ✓', 'Admin Portal ✓', 'Redis Cache ✓',
               ].map((tag) => (
                 <span key={tag} className="px-2.5 py-1 bg-white/15 rounded-lg text-xs font-medium">
                   {tag}
