@@ -15,7 +15,7 @@
 ## Target Codebase Structure
 
 ```
-hydroeos/
+hydrobos/
 │
 ├── README.md                           # Project overview (this doc set)
 ├── docs/                              # Documentation (this folder)
@@ -32,7 +32,7 @@ hydroeos/
 │   └── 11-project-structure.md
 │
 ├── marketing/                         # Sales & marketing materials
-│   └── hydroeos-3-pager.md
+│   └── hydrobos-3-pager.md
 │
 ├── packages/                          # Shared libraries (monorepo)
 │   ├── shared-types/                  # TypeScript types shared across all services
@@ -383,7 +383,7 @@ flowchart TD
 
 | Category | Convention | Example |
 |----------|-----------|---------|
-| **Packages** | `@hydroeos/name` | `@hydroeos/shared-types` |
+| **Packages** | `@hydrobos/name` | `@hydrobos/shared-types` |
 | **Services** | `kebab-case` | `identity-service`, `api-gateway` |
 | **Connectors** | `connector-{name}` | `connector-servicefusion` |
 | **Files** | `kebab-case.ts` | `tenant-context.ts` |
@@ -393,4 +393,4 @@ flowchart TD
 | **DB Collections** | `snake_case` | `audit_logs`, `connector_data` |
 | **API Routes** | `kebab-case` | `/api/v1/identity/users` |
 | **Environment Vars** | `UPPER_SNAKE_CASE` | `AZURE_CLIENT_ID` |
-| **Docker Images** | `hydroeos/{service}` | `hydroeos/identity-service` |
+| **Docker Images** | `hydrobos/{service}` | `hydrobos/identity-service` |

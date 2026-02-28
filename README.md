@@ -1,12 +1,12 @@
-# HydreOS — Enterprise Operating System Dashboard
+# HydroBOS — Enterprise Operating System Dashboard
 
 > **A unified, extensible platform serving as a single pane of glass for all critical business, IT, and security operations.**
 
 ---
 
-## What is HydreOS?
+## What is HydroBOS?
 
-HydreOS is a **modern Enterprise OS dashboard** — a centralized control plane for an organization's day-to-day operations, designed to be productized as a **scalable SaaS/PaaS** offering. It consolidates identity management, operational workflows, analytics, documentation, security controls, and third-party services into one **cohesive, premium-grade dashboard**.
+HydroBOS is a **modern Enterprise OS dashboard** — a centralized control plane for an organization's day-to-day operations, designed to be productized as a **scalable SaaS/PaaS** offering. It consolidates identity management, operational workflows, analytics, documentation, security controls, and third-party services into one **cohesive, premium-grade dashboard**.
 
 Think of it as a **Company Operating System**: one interface that increases visibility and efficiency, enforces security by design, and serves as the foundation for both internal use and external revenue.
 
@@ -29,7 +29,7 @@ Think of it as a **Company Operating System**: one interface that increases visi
 ## Documentation Structure
 
 ```
-hydroeos/
+hydrobos/
 ├── README.md                          # This file — project overview
 ├── docs/
 │   ├── 01-vision-and-objectives.md    # Vision, goals, and non-negotiable objectives
@@ -44,7 +44,7 @@ hydroeos/
 │   ├── 10-roadmap.md                  # Phased delivery roadmap (MVP → V2+)
 │   └── 11-project-structure.md        # Target codebase structure & repo layout
 ├── marketing/
-│   └── hydroeos-3-pager.md            # Marketable product overview (3-page sell sheet)
+│   └── hydrobos-3-pager.md            # Marketable product overview (3-page sell sheet)
 └── rough_idea_dump.txt                # Original brainstorm document
 ```
 
@@ -63,7 +63,7 @@ hydroeos/
 - [UX & Design Requirements](docs/09-ux-design-requirements.md)
 - [Roadmap](docs/10-roadmap.md)
 - [Project Structure](docs/11-project-structure.md)
-- [Marketing 3-Pager](marketing/hydroeos-3-pager.md)
+- [Marketing 3-Pager](marketing/hydrobos-3-pager.md)
 
 ---
 

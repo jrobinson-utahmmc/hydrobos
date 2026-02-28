@@ -2,7 +2,7 @@
 
 ## Philosophy
 
-Connections to external systems are vital to HydreOS's value proposition. The platform serves as an **integration hub** — bringing disparate systems into a single view through a modular **connector framework**.
+Connections to external systems are vital to HydroBOS's value proposition. The platform serves as an **integration hub** — bringing disparate systems into a single view through a modular **connector framework**.
 
 Every connector:
 1. **Authenticates** with the external service (OAuth, API key, certificate, etc.)
@@ -42,7 +42,7 @@ flowchart LR
 
 ## Canonical Data Model
 
-The canonical data model is the **lingua franca** of HydreOS. All connectors translate external data into these standardized entities, allowing dashboards, widgets, reports, and alerts to consume data uniformly regardless of source.
+The canonical data model is the **lingua franca** of HydroBOS. All connectors translate external data into these standardized entities, allowing dashboards, widgets, reports, and alerts to consume data uniformly regardless of source.
 
 ```mermaid
 classDiagram
@@ -120,7 +120,7 @@ classDiagram
 
 ```mermaid
 sequenceDiagram
-    participant App as HydreOS
+    participant App as HydroBOS
     participant Entra as Entra ID
     participant Graph as MS Graph API
 

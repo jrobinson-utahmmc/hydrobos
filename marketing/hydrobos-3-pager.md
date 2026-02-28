@@ -1,4 +1,4 @@
-# HydreOS
+# HydroBOS
 
 ### The Enterprise Operating System Your Business Has Been Missing
 
@@ -16,9 +16,9 @@ Every minute your team spends switching between systems is a minute not spent gr
 
 ---
 
-## The Solution: HydreOS
+## The Solution: HydroBOS
 
-**HydreOS is a unified Enterprise Operating System** — a single, beautiful dashboard that brings your entire operation into one view.
+**HydroBOS is a unified Enterprise Operating System** — a single, beautiful dashboard that brings your entire operation into one view.
 
 It's not another monitoring tool. It's not another ticketing system. **It's the operating system that connects all of them** — giving every stakeholder exactly the view they need, from the C-suite to the IT closet.
 
@@ -46,17 +46,17 @@ It's not another monitoring tool. It's not another ticketing system. **It's the 
 
 ---
 
-## What Makes HydreOS Different
+## What Makes HydroBOS Different
 
 ### 🔐 Identity at the Core
 
-HydreOS is built on **Microsoft Entra ID** (Azure AD) Single Sign-On. Your team signs in once with their corporate credentials — no new passwords, no separate accounts. Multi-factor authentication, conditional access, and role-based permissions work out of the box.
+HydroBOS is built on **Microsoft Entra ID** (Azure AD) Single Sign-On. Your team signs in once with their corporate credentials — no new passwords, no separate accounts. Multi-factor authentication, conditional access, and role-based permissions work out of the box.
 
 Every action, every view, every data point is governed by **who you are and what you're authorized to see**. This isn't bolted-on security — it's the foundation.
 
 ### 🔌 Connects to Everything You Already Use
 
-HydreOS doesn't replace your tools — it **unifies them**. Pre-built connectors bring data from across your stack into one coherent view:
+HydroBOS doesn't replace your tools — it **unifies them**. Pre-built connectors bring data from across your stack into one coherent view:
 
 | **Business** | **IT Infrastructure** | **Security** |
 |:---:|:---:|:---:|
@@ -70,7 +70,7 @@ New connectors can be added in **under two weeks** thanks to our modular connect
 
 ### 🛡️ Zero Trust — Digital Meets Physical
 
-HydreOS is the first platform to **unify digital and physical security** under one identity-driven policy framework:
+HydroBOS is the first platform to **unify digital and physical security** under one identity-driven policy framework:
 
 - A badge scan at the front door and a VPN login from another country? **Impossible travel alert — automatically.**
 - An unrecognized person detected by cameras after hours? **Alert escalated to security — instantly.**
@@ -78,7 +78,7 @@ HydreOS is the first platform to **unify digital and physical security** under o
 
 ### 📊 Every Role Gets Their Perfect View
 
-HydreOS delivers **role-specific dashboards** — not a one-size-fits-all screen:
+HydroBOS delivers **role-specific dashboards** — not a one-size-fits-all screen:
 
 | **Executives** | **IT Admins** | **Security Teams** | **Business Teams** |
 |:---:|:---:|:---:|:---:|
@@ -95,7 +95,7 @@ Users see only what's relevant to their role. Drag-and-drop widgets let everyone
 
 ## Built for Scale, Ready for SaaS
 
-HydreOS isn't just an internal tool — it's a **platform built for productization**.
+HydroBOS isn't just an internal tool — it's a **platform built for productization**.
 
 ```mermaid
 graph LR
@@ -116,7 +116,7 @@ graph LR
 
 ## The Business Case
 
-| Without HydreOS | With HydreOS |
+| Without HydroBOS | With HydroBOS |
 |:---:|:---:|
 | 8+ tools to check daily | **1 dashboard** |
 | Minutes to find context | **Seconds** — global search finds anything |
@@ -154,7 +154,7 @@ graph LR
 
 The tools exist. The APIs exist. The identity infrastructure exists. What's been missing is the **connective tissue** — a single platform smart enough to bring it all together and secure enough to trust with everything.
 
-**HydreOS is that platform.**
+**HydroBOS is that platform.**
 
 ---
 
@@ -164,8 +164,8 @@ The tools exist. The APIs exist. The identity infrastructure exists. What's been
 
 ### Ready to unify your operations?
 
-**HydreOS** — One dashboard. Every signal. Total control.
+**HydroBOS** — One dashboard. Every signal. Total control.
 
-*Contact: [team@hydroeos.com](mailto:team@hydroeos.com)*
+*Contact: [team@hydrobos.com](mailto:team@hydrobos.com)*
 
 </div>

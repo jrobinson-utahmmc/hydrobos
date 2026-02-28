@@ -2,11 +2,11 @@
 
 ## Zero Trust Alignment
 
-HydreOS is designed around **Zero Trust Architecture** (ZTA) principles. No user, device, or network is inherently trusted. Every request is verified against identity, permissions, and context.
+HydroBOS is designed around **Zero Trust Architecture** (ZTA) principles. No user, device, or network is inherently trusted. Every request is verified against identity, permissions, and context.
 
 ```mermaid
 graph TB
-    subgraph "Zero Trust Pillars in HydreOS"
+    subgraph "Zero Trust Pillars in HydroBOS"
         ID["🔐 IDENTITY<br/>Who is making the request?<br/>• Entra ID SSO<br/>• MFA enforcement<br/>• Session validation"]
         DEV["💻 DEVICE<br/>Is the device trusted?<br/>• Conditional access<br/>• Compliance status<br/>• Device posture checks"]
         ACC["🎯 ACCESS<br/>What are they allowed to do?<br/>• RBAC roles<br/>• ABAC context policies<br/>• Least-privilege scope"]
@@ -31,7 +31,7 @@ graph TB
 
 ### SSO with Microsoft Entra ID
 
-All authentication is handled by **Microsoft Entra ID** (Azure AD). HydreOS does **not** store passwords.
+All authentication is handled by **Microsoft Entra ID** (Azure AD). HydroBOS does **not** store passwords.
 
 **Key Properties:**
 - **Protocol:** OpenID Connect (OIDC) over OAuth 2.0
@@ -42,12 +42,12 @@ All authentication is handled by **Microsoft Entra ID** (Azure AD). HydreOS does
 
 ```mermaid
 flowchart TD
-    A[User Navigates to HydreOS] --> B{Valid Session?}
+    A[User Navigates to HydroBOS] --> B{Valid Session?}
     B -->|Yes| C[Load Dashboard]
     B -->|No| D[Redirect to Entra ID /authorize]
     D --> E[User Signs In + MFA]
     E --> F[Entra ID Issues Auth Code]
-    F --> G[HydreOS Exchanges Code for Tokens]
+    F --> G[HydroBOS Exchanges Code for Tokens]
     G --> H[Validate ID Token]
     H --> I{Token Valid?}
     I -->|No| J[Reject — Redirect to Login]
@@ -85,14 +85,14 @@ Roles are mapped from **Azure AD groups** to in-app permissions. Each role defin
 ```mermaid
 graph TB
     subgraph "Entra ID"
-        G1[AD Group:<br/>HydreOS-Admins]
-        G2[AD Group:<br/>HydreOS-ITOps]
-        G3[AD Group:<br/>HydreOS-Security]
-        G4[AD Group:<br/>HydreOS-Executives]
-        G5[AD Group:<br/>HydreOS-Users]
+        G1[AD Group:<br/>HydroBOS-Admins]
+        G2[AD Group:<br/>HydroBOS-ITOps]
+        G3[AD Group:<br/>HydroBOS-Security]
+        G4[AD Group:<br/>HydroBOS-Executives]
+        G5[AD Group:<br/>HydroBOS-Users]
     end
 
-    subgraph "HydreOS Roles"
+    subgraph "HydroBOS Roles"
         R1[Platform Admin]
         R2[IT Operations]
         R3[Security Analyst]
@@ -299,7 +299,7 @@ flowchart LR
 
 ## Physical + Digital Security Convergence
 
-HydreOS uniquely unifies **physical security** (door access, cameras) with **digital security** (network access, application permissions) under one identity-driven framework.
+HydroBOS uniquely unifies **physical security** (door access, cameras) with **digital security** (network access, application permissions) under one identity-driven framework.
 
 ```mermaid
 flowchart TD
@@ -343,7 +343,7 @@ flowchart TD
 
 ### Compliance Framework Support
 
-| Framework | How HydreOS Helps |
+| Framework | How HydroBOS Helps |
 |-----------|------------------|
 | **SOC 2** | Audit logging, access controls, change management, monitoring |
 | **GDPR** | Data isolation, consent management, right to erasure support |
@@ -354,7 +354,7 @@ flowchart TD
 
 - **Two-Person Approval:** Critical actions (firewall changes, role escalation, tenant deletion) require approval from a second authorized user
 - **Access Reviews:** Periodic (quarterly) automated reviews of user access; managers approve or revoke
-- **Automatic Deprovisioning:** When a user is disabled in Entra ID, all HydreOS access is immediately revoked
+- **Automatic Deprovisioning:** When a user is disabled in Entra ID, all HydroBOS access is immediately revoked
 - **Data Retention Policies:** Configurable per-tenant retention periods for audit logs and connector data
 - **Privacy Controls:** PII handling follows GDPR principles; data minimization; purpose limitation
 

@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-HydreOS is built on a **microservices architecture** where each service owns a distinct domain. Services are containerized with Docker, communicate through an API Gateway and event bus, and can be independently scaled and deployed.
+HydroBOS is built on a **microservices architecture** where each service owns a distinct domain. Services are containerized with Docker, communicate through an API Gateway and event bus, and can be independently scaled and deployed.
 
 ```mermaid
 graph TB

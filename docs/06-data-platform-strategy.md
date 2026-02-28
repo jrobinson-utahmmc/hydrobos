@@ -2,7 +2,7 @@
 
 ## Evolution from Product DB to Lakehouse
 
-HydreOS's data architecture is designed to **grow with the organization** — starting simple with a single document database and evolving into a full data lakehouse for advanced analytics and machine learning.
+HydroBOS's data architecture is designed to **grow with the organization** — starting simple with a single document database and evolving into a full data lakehouse for advanced analytics and machine learning.
 
 ```mermaid
 graph LR
@@ -171,7 +171,7 @@ graph TB
     end
 
     subgraph "Consumption Layer"
-        BI[BI Dashboards<br/>HydreOS Analytics Module]
+        BI[BI Dashboards<br/>HydroBOS Analytics Module]
         REP[Reports & Exports]
         ML[ML Models<br/>Predictions & Anomaly Detection]
     end

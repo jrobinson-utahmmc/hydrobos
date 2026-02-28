@@ -2,7 +2,7 @@
 
 ## Design Philosophy
 
-HydreOS targets a **premium enterprise experience** — professional, fast, and intuitive. The design must feel polished enough to justify SaaS pricing while remaining functional for daily operator use.
+HydroBOS targets a **premium enterprise experience** — professional, fast, and intuitive. The design must feel polished enough to justify SaaS pricing while remaining functional for daily operator use.
 
 **Core Principles:**
 1. **Clarity** — Information hierarchy is immediately obvious; no visual noise
@@ -17,7 +17,7 @@ HydreOS targets a **premium enterprise experience** — professional, fast, and 
 
 ### Component Library
 
-Build on **Shadcn/ui** (Radix-based accessible primitives) with Tailwind CSS, customized to the HydreOS brand.
+Build on **Shadcn/ui** (Radix-based accessible primitives) with Tailwind CSS, customized to the HydroBOS brand.
 
 | Component Category | Components |
 |-------------------|------------|
@@ -189,11 +189,11 @@ For multi-tenant deployments, each tenant can customize:
 
 | Element | Customizable? | Default |
 |---------|:---:|---------|
-| **Logo** | ✅ | HydreOS logo |
+| **Logo** | ✅ | HydroBOS logo |
 | **Accent Color** | ✅ | Blue (#2563EB) |
 | **Login Background** | ✅ | Default gradient |
-| **Favicon** | ✅ | HydreOS icon |
-| **App Title** | ✅ | "HydreOS" |
+| **Favicon** | ✅ | HydroBOS icon |
+| **App Title** | ✅ | "HydroBOS" |
 | **Dark/Light Mode** | ✅ | System preference |
 | **Custom CSS** | ❌ | — (security risk) |
 | **Widget Library** | ❌ | Shared (with tenant data isolation) |

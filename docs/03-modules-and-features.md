@@ -2,7 +2,7 @@
 
 ## Product Concept
 
-HydreOS is a **central operating system for the company's internal workflows and data**. It provides an at-a-glance view of company health and operations, and allows performing both high-level and low-level tasks from one interface.
+HydroBOS is a **central operating system for the company's internal workflows and data**. It provides an at-a-glance view of company health and operations, and allows performing both high-level and low-level tasks from one interface.
 
 Key functional **modules** (or "micro-applications") span multiple domains. Each module appears as part of the unified web interface and follows consistent design and navigation principles.
 
@@ -14,7 +14,7 @@ The platform is **both inward-facing** (improving internal operations) and event
 
 ```mermaid
 graph TB
-    subgraph "HydreOS Platform"
+    subgraph "HydroBOS Platform"
         HOME[🏠 Home<br/>Company Health]
         IAM[🔐 Identity & Access]
         OPS[⚙️ Operations Hub]

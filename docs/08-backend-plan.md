@@ -142,11 +142,11 @@ sequenceDiagram
 ```typescript
 // Role mapping configuration
 const GROUP_ROLE_MAP = {
-  'HydreOS-Admins':     'platform_admin',
-  'HydreOS-ITOps':      'it_operations',
-  'HydreOS-Security':   'security_analyst',
-  'HydreOS-Executives': 'executive_viewer',
-  'HydreOS-Users':      'standard_user',
+  'HydroBOS-Admins':     'platform_admin',
+  'HydroBOS-ITOps':      'it_operations',
+  'HydroBOS-Security':   'security_analyst',
+  'HydroBOS-Executives': 'executive_viewer',
+  'HydroBOS-Users':      'standard_user',
 };
 
 function mapGroupsToRoles(adGroups: string[]): string[] {

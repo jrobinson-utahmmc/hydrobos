@@ -55,7 +55,7 @@ Provide one **central dashboard** for monitoring and managing **all facets of th
 
 ```mermaid
 graph LR
-    subgraph "Before HydreOS"
+    subgraph "Before HydroBOS"
         A[CRM Tool] --- X[User]
         B[Network Monitor] --- X
         C[Security Console] --- X
@@ -67,8 +67,8 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph "With HydreOS"
-        X[User] --- H[HydreOS Dashboard]
+    subgraph "With HydroBOS"
+        X[User] --- H[HydroBOS Dashboard]
         H --- A[CRM Data]
         H --- B[Network Status]
         H --- C[Security Alerts]
@@ -96,22 +96,22 @@ Implement **Microsoft Entra ID** (Azure AD) for single sign-on using **OpenID Co
 ```mermaid
 sequenceDiagram
     participant User
-    participant HydreOS as HydreOS App
+    participant HydroBOS as HydroBOS App
     participant EntraID as Microsoft Entra ID
     participant Graph as Microsoft Graph API
 
-    User->>HydreOS: Navigate to app
-    HydreOS->>EntraID: Redirect to /authorize (OIDC)
+    User->>HydroBOS: Navigate to app
+    HydroBOS->>EntraID: Redirect to /authorize (OIDC)
     EntraID->>User: Sign-in prompt + MFA
     User->>EntraID: Credentials + MFA
-    EntraID->>HydreOS: Authorization code
-    HydreOS->>EntraID: Exchange code for tokens
-    EntraID->>HydreOS: ID Token + Access Token
-    HydreOS->>HydreOS: Validate JWT, extract claims
-    HydreOS->>Graph: Fetch user profile & groups
-    Graph->>HydreOS: User details, group memberships
-    HydreOS->>HydreOS: Map groups → roles (RBAC)
-    HydreOS->>User: Authenticated session + role-based UI
+    EntraID->>HydroBOS: Authorization code
+    HydroBOS->>EntraID: Exchange code for tokens
+    EntraID->>HydroBOS: ID Token + Access Token
+    HydroBOS->>HydroBOS: Validate JWT, extract claims
+    HydroBOS->>Graph: Fetch user profile & groups
+    Graph->>HydroBOS: User details, group memberships
+    HydroBOS->>HydroBOS: Map groups → roles (RBAC)
+    HydroBOS->>User: Authenticated session + role-based UI
 ```
 
 ---

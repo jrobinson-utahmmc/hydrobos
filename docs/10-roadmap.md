@@ -2,11 +2,11 @@
 
 ## Phased Delivery Plan
 
-HydreOS follows an incremental delivery model — each phase builds on the last, delivering usable value at every milestone.
+HydroBOS follows an incremental delivery model — each phase builds on the last, delivering usable value at every milestone.
 
 ```mermaid
 gantt
-    title HydreOS Delivery Roadmap
+    title HydroBOS Delivery Roadmap
     dateFormat YYYY-MM
     axisFormat %b %Y
 
@@ -231,7 +231,7 @@ flowchart TD
 
 ```mermaid
 timeline
-    title HydreOS Key Milestones
+    title HydroBOS Key Milestones
     
     Q1 2026 : Phase 0 Start
              : Architecture Defined
