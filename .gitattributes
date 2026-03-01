@@ -1,0 +1,8 @@
+# Default: auto-detect
+* text=auto
+
+# Force LF for shell scripts (must run on Linux)
+*.sh text eol=lf
+
+# Force LF for Dockerfiles
+Dockerfile* text eol=lf
