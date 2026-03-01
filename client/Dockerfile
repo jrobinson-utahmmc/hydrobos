@@ -17,35 +17,8 @@ RUN cd client && npm run build
 FROM nginx:alpine AS production
 COPY --from=build /app/client/dist /usr/share/nginx/html
 
-# Custom nginx config for SPA routing
-RUN cat > /etc/nginx/conf.d/default.conf <<'EOF'
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # SPA fallback — serve index.html for all routes
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Proxy API calls to the gateway
-    location /api/ {
-        proxy_pass http://gateway:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-EOF
+# Custom nginx config for SPA routing + API proxy
+COPY client/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
