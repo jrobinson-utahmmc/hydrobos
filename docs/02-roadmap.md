@@ -64,6 +64,22 @@ gantt
     Multi-Tenant Isolation            :p8a, 2027-07, 2027-09
     Tenant Provisioning               :p8b, 2027-08, 2027-10
     V1 SaaS Launch — Pilot            :milestone, p8c, 2027-10, 0d
+
+    section Phase 9 — Proprietary Package System
+    Package Registry & Manifest       :p9a, 2027-10, 2027-12
+    Per-Tenant Container Orchestrator :p9b, 2027-10, 2028-01
+    Package Lifecycle Management      :p9c, 2027-11, 2028-01
+    Tenant Isolation & Resource Limits:p9d, 2027-12, 2028-02
+    Package Marketplace UI            :p9e, 2028-01, 2028-02
+    Package System GA                 :milestone, p9f, 2028-02, 0d
+
+    section Phase 10 — No-Code Workflow Builder
+    Workflow Engine Core              :p10a, 2028-02, 2028-04
+    Visual DAG Editor (Zapier-style)  :p10b, 2028-02, 2028-05
+    API & Package Node Connectors     :p10c, 2028-03, 2028-05
+    Trigger System (Cron/Event/Webhook):p10d, 2028-04, 2028-06
+    Workflow Marketplace & Sharing    :p10e, 2028-05, 2028-06
+    Workflow Builder GA               :milestone, p10f, 2028-06, 0d
 ```
 
 ---
@@ -408,12 +424,102 @@ flowchart TD
 | Data lakehouse | Unified analytics across all connector data; Spark processing |
 | Password safe / secret management | Team-based secret storage with audit trail |
 | Advanced ABAC policies | OPA integration; context-aware authorization rules |
-| Visual workflow automation | Drag-and-drop workflow builder for IT/business processes |
 | Deepened IoT/physical security | RADIUS integration; expanded NVR features; badge correlation |
-| Applet marketplace | Community/third-party applets installable from a catalog |
 | AI-powered insights | Anomaly detection, predictive alerts, natural-language queries |
 | SIEM/SOAR deep integration | Bi-directional with Sentinel, Splunk, or similar |
 | Mobile app (PWA) | Progressive Web App for on-the-go dashboard access |
+
+---
+
+### Phase 9 — Proprietary Package System (TODO)
+
+**Goal:** Enable users to install proprietary packages from a catalog. Each package spins up isolated Docker containers scoped to the tenant, providing extensible, modular functionality without affecting other tenants.
+
+| Deliverable | Description |
+|------------|-------------|
+| Package registry & manifest schema | Central registry defining package metadata, dependencies, container specs, resource limits, and health checks |
+| Per-tenant container orchestrator | Docker/Kubernetes integration that provisions, starts, stops, and monitors containers per tenant per package |
+| Package lifecycle management | Install, upgrade, rollback, uninstall flows with state machine; handles data migrations between versions |
+| Tenant isolation & resource limits | Network policies, CPU/memory quotas, storage limits, and secrets injection per tenant container instance |
+| Package SDK & template | Developer toolkit for building new packages: Dockerfile template, manifest generator, local testing harness |
+| Package marketplace UI | Admin panel for browsing, installing, and managing packages; per-tenant usage dashboards and billing hooks |
+| Inter-package communication | Secure service mesh for packages to communicate within a tenant boundary via gRPC/REST with mTLS |
+
+```mermaid
+flowchart LR
+    A[Package Registry] --> B[Tenant requests install]
+    B --> C[Orchestrator provisions containers]
+    C --> D[Health check & readiness]
+    D --> E[Package available in tenant dashboard]
+    E --> F[Usage metering & billing]
+    
+    style A fill:#3b82f6,color:#fff
+    style C fill:#8b5cf6,color:#fff
+    style E fill:#22c55e,color:#fff
+```
+
+**Key Design Decisions:**
+- Packages are defined by a manifest (`package.hydrobos.yml`) specifying container images, environment variables, ports, volumes, and resource limits
+- Each tenant gets isolated container instances — no shared state between tenants
+- Orchestrator supports both Docker Compose (single-node) and Kubernetes (multi-node) backends
+- Package data is stored in tenant-scoped databases/collections
+- Billing hooks track per-tenant resource consumption (CPU-hours, storage, API calls)
+
+**Exit Criteria:**
+- [ ] Package manifest schema defined and validated
+- [ ] At least 2 proprietary packages deployed via the system
+- [ ] Tenant isolation confirmed (no cross-tenant container or data access)
+- [ ] Install/upgrade/uninstall lifecycle works end-to-end
+- [ ] Resource limits enforced and metering active
+
+---
+
+### Phase 10 — No-Code Workflow Builder (TODO)
+
+**Goal:** Provide a visual, Zapier-like workflow builder that allows users to combine APIs, packages, and platform capabilities into automated workflows — without writing code.
+
+| Deliverable | Description |
+|------------|-------------|
+| Workflow engine core | DAG-based execution engine supporting sequential, parallel, conditional, and loop steps; handles retries and error flows |
+| Visual DAG editor | Drag-and-drop canvas for building workflows; node palette, edge connections, inline configuration, live preview |
+| API & package node connectors | Pre-built nodes for REST APIs, webhooks, installed packages, platform services (SEO, identity, etc.) |
+| Trigger system | Cron schedules, event-driven (Kafka topics), webhook listeners, manual triggers, file-watch triggers |
+| Data transformation nodes | JSON mapping, filtering, aggregation, template rendering (Handlebars/Liquid), JavaScript expressions |
+| Workflow versioning & history | Git-like versioning for workflow definitions; execution history with step-level logs and replay |
+| Workflow marketplace & sharing | Share workflow templates across tenants; community-contributed workflow library |
+| Credential vault integration | Secure storage for API keys and OAuth tokens used by workflow nodes; per-tenant secret scoping |
+
+```mermaid
+flowchart TD
+    A[Trigger: Schedule/Event/Webhook] --> B[Node: Fetch API Data]
+    B --> C{Condition: Check Value}
+    C -->|Pass| D[Node: Run Package Action]
+    C -->|Fail| E[Node: Send Notification]
+    D --> F[Node: Transform & Store]
+    F --> G[End: Log Result]
+    E --> G
+    
+    style A fill:#f59e0b,color:#fff
+    style B fill:#3b82f6,color:#fff
+    style C fill:#ec4899,color:#fff
+    style D fill:#8b5cf6,color:#fff
+    style F fill:#22c55e,color:#fff
+```
+
+**Key Design Decisions:**
+- Workflows are stored as JSON DAGs with typed nodes and edges
+- Each node type has a schema defining inputs, outputs, and configuration
+- Execution engine runs server-side with tenant-scoped queues (backed by Kafka/Redis)
+- Package nodes automatically appear when a package is installed — zero config
+- Supports both synchronous (API-to-API) and asynchronous (event-driven) patterns
+- Workflow runs are sandboxed per tenant with execution time limits and rate controls
+
+**Exit Criteria:**
+- [ ] Visual editor supports drag-and-drop workflow creation
+- [ ] At least 5 built-in node types (HTTP, Transform, Condition, Package, Notification)
+- [ ] Trigger system supports cron, webhook, and event-driven execution
+- [ ] Workflow execution logs with step-level detail
+- [ ] End-to-end workflow combining an API call + package action + notification
 
 ---
 
@@ -453,6 +559,14 @@ timeline
                : Connectors + Security
                : Phase 8 — Multi-Tenant
                : V1 SaaS Launch 🚀
+    
+    Q4 2027-Q1 2028 : Phase 9 — Package System
+                     : Per-Tenant Container Orchestration
+                     : Package Marketplace
+    
+    Q1-Q2 2028 : Phase 10 — Workflow Builder
+               : Visual DAG Editor (Zapier-style)
+               : API + Package Workflow Automation 🚀
 ```
 
 ---

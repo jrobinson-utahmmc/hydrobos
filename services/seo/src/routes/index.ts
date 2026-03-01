@@ -1,0 +1,9 @@
+export { default as analysisRoutes } from './analysis';
+export { default as contentRoutes } from './content';
+export { default as imageRoutes } from './images';
+export { default as projectRoutes } from './projects';
+export { default as fileRoutes } from './files';
+export { default as integrationRoutes } from './integrations';
+export { default as aiRoutes } from './ai';
+export { default as permissionRoutes } from './permissions';
+export { default as eventRoutes } from './events';

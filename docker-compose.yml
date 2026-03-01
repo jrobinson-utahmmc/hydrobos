@@ -172,6 +172,72 @@ services:
       - hydrobos
     restart: unless-stopped
 
+  # ── SEO Applet ──
+  seo:
+    build:
+      context: .
+      dockerfile: services/seo/Dockerfile
+    image: hydrobos/seo:latest
+    container_name: hydrobos-seo
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: "5003"
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongodb:27017/hydrobos
+      JWT_SECRET: ${JWT_SECRET:-hydrobos-dev-secret}
+      IDENTITY_SERVICE_URL: http://identity:5001
+      PACKAGE_MANAGER_URL: http://package-manager:5004
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GOOGLE_PAGESPEED_API_KEY: ${GOOGLE_PAGESPEED_API_KEY:-}
+      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY:-}
+      AHREFS_API_KEY: ${AHREFS_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5003/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - hydrobos
+    restart: unless-stopped
+
+  # ── Package Manager ──
+  package-manager:
+    build:
+      context: .
+      dockerfile: services/package-manager/Dockerfile
+    image: hydrobos/package-manager:latest
+    container_name: hydrobos-package-manager
+    ports:
+      - "5004:5004"
+    environment:
+      PORT: "5004"
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongodb:27017/hydrobos
+      JWT_SECRET: ${JWT_SECRET:-hydrobos-dev-secret}
+      IDENTITY_SERVICE_URL: http://identity:5001
+      SEO_SERVICE_URL: http://seo:5003
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5004/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - hydrobos
+    restart: unless-stopped
+
   # ── API Gateway ──
   gateway:
     build:
@@ -187,10 +253,16 @@ services:
       CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
       IDENTITY_SERVICE_URL: http://identity:5001
       WIDGET_SERVICE_URL: http://widget:5002
+      SEO_SERVICE_URL: http://seo:5003
+      PACKAGE_MANAGER_URL: http://package-manager:5004
     depends_on:
       identity:
         condition: service_healthy
       widget:
+        condition: service_healthy
+      seo:
+        condition: service_healthy
+      package-manager:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]

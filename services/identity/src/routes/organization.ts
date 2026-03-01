@@ -75,9 +75,15 @@ router.put('/', requireAdmin, async (req: Request, res: Response) => {
     if (primaryColor !== undefined) update.primaryColor = primaryColor;
     if (timezone !== undefined) update.timezone = timezone;
     if (locale !== undefined) update.locale = locale;
-    if (features !== undefined) update.features = features;
     if (contact !== undefined) update.contact = contact;
     if (subscription !== undefined) update.subscription = subscription;
+
+    // Merge features individually to avoid overwriting unrelated flags
+    if (features !== undefined) {
+      for (const [key, value] of Object.entries(features)) {
+        update[`features.${key}`] = value;
+      }
+    }
 
     const org = await Organization.findOneAndUpdate(
       {},

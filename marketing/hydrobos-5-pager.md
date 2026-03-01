@@ -603,6 +603,6 @@ graph TD
 
 **HydroBOS** — One dashboard. Every signal. Total control.
 
-*Contact: [team@hydrobos.io](mailto:team@hydrobos.io)*
+*Contact: [team@hydrobos.com](mailto:team@hydrobos.com)*
 
 </div>

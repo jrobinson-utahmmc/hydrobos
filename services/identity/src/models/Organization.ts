@@ -13,6 +13,7 @@ export interface IOrganization extends Document {
     multiTenancy: boolean;
     auditLogging: boolean;
     apiAccess: boolean;
+    localLoginDisabled: boolean;
   };
   contact: {
     email?: string;
@@ -66,6 +67,7 @@ const organizationSchema = new Schema<IOrganization>(
       multiTenancy: { type: Boolean, default: true },
       auditLogging: { type: Boolean, default: true },
       apiAccess: { type: Boolean, default: true },
+      localLoginDisabled: { type: Boolean, default: false },
     },
     contact: {
       email: String,

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { User } from '../models/User';
+import { Organization } from '../models/Organization';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { audit } from '../utils/audit';
 import {
@@ -94,6 +95,15 @@ router.post('/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    // Check if local login has been disabled (SSO-only mode)
+    const org = await Organization.findOne();
+    if (org?.features?.localLoginDisabled && org?.features?.ssoEnabled) {
+      res.status(403).json({
+        error: 'Local login has been disabled. Please use SSO to sign in.',
+      });
       return;
     }
 

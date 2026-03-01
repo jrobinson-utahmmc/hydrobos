@@ -334,3 +334,224 @@ export const ssoConfigApi = {
       } | null;
     }>('/sso/config/sync/status'),
 };
+
+// ── Package Manager API ──
+
+export const packageApi = {
+  list: (params?: { category?: string; type?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.category) query.set('category', params.category);
+    if (params?.type) query.set('type', params.type);
+    if (params?.search) query.set('search', params.search);
+    const qs = query.toString();
+    return apiRequest<{ success: boolean; data: any[] }>(
+      `/packages${qs ? `?${qs}` : ''}`
+    );
+  },
+
+  get: (packageId: string) =>
+    apiRequest<{ success: boolean; data: any }>(`/packages/${packageId}`),
+
+  install: (packageId: string, config?: Record<string, any>) =>
+    apiRequest<{ success: boolean; message: string; data: any }>(
+      '/packages/installations/install',
+      { method: 'POST', body: JSON.stringify({ packageId, config }) }
+    ),
+
+  uninstall: (packageId: string) =>
+    apiRequest<{ success: boolean; message: string }>(
+      '/packages/installations/uninstall',
+      { method: 'POST', body: JSON.stringify({ packageId }) }
+    ),
+
+  setStatus: (packageId: string, status: 'active' | 'disabled') =>
+    apiRequest<{ success: boolean; data: any }>(
+      `/packages/installations/${packageId}/status`,
+      { method: 'PATCH', body: JSON.stringify({ status }) }
+    ),
+
+  healthCheck: (packageId: string) =>
+    apiRequest<{ success: boolean; data: any }>(
+      `/packages/installations/${packageId}/health`,
+      { method: 'POST' }
+    ),
+
+  installations: () =>
+    apiRequest<{ success: boolean; data: any[] }>('/packages/installations'),
+};
+
+// ── Platform Integrations API ──
+
+export const integrationApi = {
+  list: () =>
+    apiRequest<{ success: boolean; data: any[] }>('/packages/integrations'),
+
+  get: (integrationId: string) =>
+    apiRequest<{ success: boolean; data: any }>(`/packages/integrations/${integrationId}`),
+
+  update: (integrationId: string, data: { config?: Record<string, any>; enabled?: boolean }) =>
+    apiRequest<{ success: boolean; message: string; data: any }>(
+      `/packages/integrations/${integrationId}`,
+      { method: 'PUT', body: JSON.stringify(data) }
+    ),
+
+  test: (integrationId: string) =>
+    apiRequest<{ success: boolean; data: { success: boolean; message: string } }>(
+      `/packages/integrations/${integrationId}/test`,
+      { method: 'POST' }
+    ),
+};
+
+// ── SEO API ──
+
+export const seoApi = {
+  // Analysis
+  analyze: (data: { url: string; strategy?: 'mobile' | 'desktop'; includeAiInsights?: boolean; includeAhrefs?: boolean; projectId?: string }) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/analysis/analyze', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  analysisHistory: (params?: { url?: string; projectId?: string; strategy?: string; limit?: number; skip?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.url) query.set('url', params.url);
+    if (params?.projectId) query.set('projectId', params.projectId);
+    if (params?.strategy) query.set('strategy', params.strategy);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.skip) query.set('skip', params.skip.toString());
+    const qs = query.toString();
+    return apiRequest<{ success: boolean; data: any }>(`/seo/analysis/history${qs ? `?${qs}` : ''}`);
+  },
+
+  lastAnalysis: () =>
+    apiRequest<{ success: boolean; data: any }>('/seo/analysis/last'),
+
+  // Content
+  contentTemplates: () =>
+    apiRequest<{ success: boolean; data: any[] }>('/seo/content/templates'),
+
+  generateContent: (data: { templateId: string; items: any[]; options?: any }) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/content/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  previewContent: (data: { templateId: string; variables?: Record<string, any> }) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/content/preview', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Images
+  listImages: () =>
+    apiRequest<{ success: boolean; data: any[] }>('/seo/images/list'),
+
+  analyzeImage: (imageUrl: string) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/images/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ imageUrl }),
+    }),
+
+  analyzeImagesBulk: (images: { path: string; base64: string }[]) =>
+    apiRequest<{ success: boolean; data: any[] }>('/seo/images/analyze/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ images }),
+    }),
+
+  exportImagesCsv: () => `/api/seo/images/export/csv`,
+
+  // Projects
+  loadProject: (projectPath: string) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/projects/load', {
+      method: 'POST',
+      body: JSON.stringify({ projectPath }),
+    }),
+
+  projectStructure: () =>
+    apiRequest<{ success: boolean; data: any }>('/seo/projects/structure'),
+
+  projectStatus: () =>
+    apiRequest<{ success: boolean; data: any }>('/seo/projects/status'),
+
+  // Files
+  listFiles: (path?: string) => {
+    const query = path ? `?path=${encodeURIComponent(path)}` : '';
+    return apiRequest<{ success: boolean; data: any }>(`/seo/files/list${query}`);
+  },
+
+  readFile: (path: string) =>
+    apiRequest<{ success: boolean; data: any }>(`/seo/files/read?path=${encodeURIComponent(path)}`),
+
+  fileOperation: (data: { type: 'create' | 'modify' | 'delete' | 'rename'; path: string; content?: string; newPath?: string; overwrite?: boolean }) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/files/operation', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // AI
+  aiChat: (message: string, context?: any) =>
+    apiRequest<{ success: boolean; data: any }>('/seo/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, context }),
+    }),
+
+  aiAnalyze: (content: string, analysisType?: 'seo' | 'content' | 'structure' | 'general') =>
+    apiRequest<{ success: boolean; data: any }>('/seo/ai/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ content, analysisType }),
+    }),
+
+  aiModels: () =>
+    apiRequest<{ success: boolean; data: any[] }>('/seo/ai/models'),
+
+  // Ahrefs
+  ahrefsDomainOverview: (domain: string) =>
+    apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/overview/${encodeURIComponent(domain)}`),
+
+  ahrefsBacklinks: (domain: string, limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/backlinks/${encodeURIComponent(domain)}${query}`);
+  },
+
+  ahrefsKeywords: (domain: string, params?: { country?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.country) query.set('country', params.country);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/keywords/${encodeURIComponent(domain)}${qs ? `?${qs}` : ''}`);
+  },
+
+  ahrefsKeywordIdeas: (keyword: string, params?: { country?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.country) query.set('country', params.country);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/keyword-ideas/${encodeURIComponent(keyword)}${qs ? `?${qs}` : ''}`);
+  },
+
+  ahrefsCompetitors: (domain: string, limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/competitors/${encodeURIComponent(domain)}${query}`);
+  },
+
+  ahrefsFullReport: (domain: string) =>
+    apiRequest<{ success: boolean; data: any }>(`/seo/integrations/ahrefs/full-report/${encodeURIComponent(domain)}`),
+
+  // Permissions
+  permissions: () =>
+    apiRequest<{ success: boolean; data: any }>('/seo/permissions'),
+
+  overridePermissions: (role: string, permissions: string[]) =>
+    apiRequest<{ success: boolean; message: string }>('/seo/permissions/override', {
+      method: 'PUT',
+      body: JSON.stringify({ role, permissions }),
+    }),
+
+  deletePermissionOverride: (role: string) =>
+    apiRequest<{ success: boolean; message: string }>(`/seo/permissions/override/${role}`, {
+      method: 'DELETE',
+    }),
+
+  // SSE Events
+  eventsUrl: () => `/api/seo/events/stream`,
+};

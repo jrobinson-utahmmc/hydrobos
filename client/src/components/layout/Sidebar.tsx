@@ -9,12 +9,16 @@ import {
   ChevronLeft,
   Menu,
   X,
+  Package,
+  Search,
 } from 'lucide-react';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/' },
   { icon: LayoutGrid, label: 'Dashboards', path: '/dashboards' },
   { icon: Puzzle, label: 'Widget Builder', path: '/widget-builder' },
+  { icon: Package, label: 'Packages', path: '/packages' },
+  { icon: Search, label: 'SEO Optimizer', path: '/seo' },
   { icon: HelpCircle, label: 'Help', path: '/help', badge: 'Soon' },
 ];
 

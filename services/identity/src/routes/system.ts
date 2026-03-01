@@ -18,12 +18,16 @@ router.get('/status', async (_req: Request, res: Response) => {
       Tenant.countDocuments({ status: { $ne: 'decommissioned' } }),
     ]);
 
+    // Also fetch full org to expose localLoginDisabled
+    const fullOrg = org ? await Organization.findById(org._id).select('features') : null;
+
     res.json({
       initialized: userCount > 0,
       version: '0.3.0',
       name: 'HydroBOS',
       ssoEnabled: ssoConfig?.enabled ?? false,
       ssoProvider: ssoConfig?.enabled ? 'Microsoft Entra ID' : undefined,
+      localLoginDisabled: fullOrg?.features?.localLoginDisabled ?? false,
       organization: org ? { name: org.name, slug: org.slug, domain: org.domain } : null,
       tenantCount,
     });

@@ -10,6 +10,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { InviteAcceptPage } from './pages/InviteAcceptPage';
+import { PackagesPage } from './pages/PackagesPage';
+import { SeoPage } from './pages/SeoPage';
 import { AppShell } from './components/layout/AppShell';
 import { Loader2 } from 'lucide-react';
 
@@ -108,6 +110,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <WidgetBuilderPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/packages"
+        element={
+          <ProtectedRoute>
+            <PackagesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seo"
+        element={
+          <ProtectedRoute>
+            <SeoPage />
           </ProtectedRoute>
         }
       />

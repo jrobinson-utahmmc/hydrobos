@@ -99,6 +99,8 @@ function OrganizationTab() {
     contactPhone: '',
     website: '',
     address: '',
+    localLoginDisabled: false,
+    ssoEnabled: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,6 +125,8 @@ function OrganizationTab() {
           contactPhone: d.contact?.phone || '',
           website: d.contact?.website || '',
           address: d.contact?.address || '',
+          localLoginDisabled: d.features?.localLoginDisabled || false,
+          ssoEnabled: d.features?.ssoEnabled || false,
         });
       }
     } catch {
@@ -148,6 +152,9 @@ function OrganizationTab() {
           phone: form.contactPhone,
           website: form.website,
           address: form.address,
+        },
+        features: {
+          localLoginDisabled: form.localLoginDisabled,
         },
       });
       setMessage({ type: 'success', text: 'Organization settings saved' });
@@ -320,6 +327,55 @@ function OrganizationTab() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Security — Local Login Toggle */}
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-6 space-y-4">
+        <h3 className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+          <Shield className="w-5 h-5 text-[var(--accent)]" />
+          Authentication Security
+        </h3>
+
+        <div className="flex items-center justify-between p-4 bg-[var(--bg-tertiary)] rounded-xl">
+          <div>
+            <p className="text-sm font-medium text-[var(--text-primary)]">Disable Local Login</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+              When enabled, users must sign in via SSO. Local email/password login will be blocked.
+              {!form.ssoEnabled && (
+                <span className="text-amber-600 dark:text-amber-400 ml-1">
+                  SSO must be configured before this takes effect.
+                </span>
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, localLoginDisabled: !form.localLoginDisabled })}
+            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
+              form.localLoginDisabled
+                ? 'bg-red-500'
+                : 'bg-slate-300 dark:bg-slate-600'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                form.localLoginDisabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {form.localLoginDisabled && (
+          <div className="p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40 rounded-xl text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Warning</p>
+              <p className="mt-0.5">
+                Local login will be disabled for all users. Make sure SSO is properly configured and at least one admin can log in via SSO before enabling this.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <button

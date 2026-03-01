@@ -127,6 +127,26 @@ app.use(
   })
 );
 
+// ── Route: SEO Applet ──
+// /api/seo/* → seo:5003/*
+app.use(
+  '/api/seo',
+  createProxyMiddleware({
+    ...proxyOptions(config.services.seo),
+    pathRewrite: { '^/api/seo': '' },
+  })
+);
+
+// ── Route: Package Manager ──
+// /api/packages/* → package-manager:5004/api/packages/*
+app.use(
+  '/api/packages',
+  createProxyMiddleware({
+    ...proxyOptions(config.services.packageManager),
+    pathRewrite: { '^/': '/api/packages/' },
+  })
+);
+
 // ── Gateway Health ──
 app.get('/api/health', (_req, res) => {
   res.json({
@@ -136,6 +156,8 @@ app.get('/api/health', (_req, res) => {
     routes: {
       identity: config.services.identity,
       widget: config.services.widget,
+      seo: config.services.seo,
+      packageManager: config.services.packageManager,
     },
   });
 });
@@ -147,6 +169,8 @@ app.get('/api/services', (_req, res) => {
       { name: 'gateway', url: `http://localhost:${config.port}`, status: 'running' },
       { name: 'identity', url: config.services.identity, type: 'auth' },
       { name: 'widget', url: config.services.widget, type: 'dashboards' },
+      { name: 'seo', url: config.services.seo, type: 'applet' },
+      { name: 'package-manager', url: config.services.packageManager, type: 'registry' },
     ],
   });
 });
@@ -159,6 +183,8 @@ app.listen(config.port, () => {
   console.log(`  ├─ Client:     ${config.clientUrl}`);
   console.log(`  ├─ Identity:   ${config.services.identity}`);
   console.log(`  ├─ Widget:     ${config.services.widget}`);
+  console.log(`  ├─ SEO:        ${config.services.seo}`);
+  console.log(`  ├─ Packages:   ${config.services.packageManager}`);
   console.log(`  └─ Env:        ${config.nodeEnv}`);
   console.log('');
 });
