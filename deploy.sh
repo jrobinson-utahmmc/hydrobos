@@ -188,6 +188,26 @@ else
   ok "Docker $(docker --version | grep -oP '\d+\.\d+\.\d+')"
 fi
 
+# ── Docker API version compatibility ──
+# If the CLI is newer than the daemon (e.g. Docker CE CLI + old docker.io daemon),
+# the CLI will fail with "client version X is too new". Auto-negotiate downward.
+DAEMON_API=$(docker version --format '{{.Server.APIVersion}}' 2>/dev/null || true)
+CLIENT_API=$(docker version --format '{{.Client.APIVersion}}' 2>/dev/null || true)
+if [[ -n "$DAEMON_API" && -n "$CLIENT_API" ]]; then
+  # Compare as floats — if client > daemon, pin to daemon version
+  if awk "BEGIN{exit !($CLIENT_API > $DAEMON_API)}" 2>/dev/null; then
+    export DOCKER_API_VERSION="$DAEMON_API"
+    warn "Docker CLI API ($CLIENT_API) > daemon ($DAEMON_API) — pinned DOCKER_API_VERSION=$DAEMON_API"
+  fi
+elif [[ -z "$DAEMON_API" ]]; then
+  # docker version failed — likely the mismatch itself; try to extract from error
+  MAX_VER=$(docker version 2>&1 | grep -oP 'Maximum supported API version is \K[0-9.]+' || true)
+  if [[ -n "$MAX_VER" ]]; then
+    export DOCKER_API_VERSION="$MAX_VER"
+    warn "Docker API version mismatch detected — pinned DOCKER_API_VERSION=$MAX_VER"
+  fi
+fi
+
 # ── Docker Compose (v2 plugin) ──
 if ! docker compose version &>/dev/null; then
   log "Installing Docker Compose plugin..."
