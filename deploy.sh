@@ -185,26 +185,24 @@ if ! command -v docker &>/dev/null; then
   systemctl enable --now docker
   ok "Docker installed"
 else
-  ok "Docker $(docker --version | grep -oP '\d+\.\d+\.\d+')"
+  ok "Docker $(docker --version | grep -oP '\d+\.\d+\.\d+' || echo 'detected')"
 fi
 
 # ── Docker API version compatibility ──
 # If the CLI is newer than the daemon (e.g. Docker CE CLI + old docker.io daemon),
-# the CLI will fail with "client version X is too new". Auto-negotiate downward.
-DAEMON_API=$(docker version --format '{{.Server.APIVersion}}' 2>/dev/null || true)
-CLIENT_API=$(docker version --format '{{.Client.APIVersion}}' 2>/dev/null || true)
-if [[ -n "$DAEMON_API" && -n "$CLIENT_API" ]]; then
-  # Compare as floats — if client > daemon, pin to daemon version
-  if awk "BEGIN{exit !($CLIENT_API > $DAEMON_API)}" 2>/dev/null; then
-    export DOCKER_API_VERSION="$DAEMON_API"
-    warn "Docker CLI API ($CLIENT_API) > daemon ($DAEMON_API) — pinned DOCKER_API_VERSION=$DAEMON_API"
-  fi
-elif [[ -z "$DAEMON_API" ]]; then
-  # docker version failed — likely the mismatch itself; try to extract from error
-  MAX_VER=$(docker version 2>&1 | grep -oP 'Maximum supported API version is \K[0-9.]+' || true)
-  if [[ -n "$MAX_VER" ]]; then
-    export DOCKER_API_VERSION="$MAX_VER"
-    warn "Docker API version mismatch detected — pinned DOCKER_API_VERSION=$MAX_VER"
+# every docker command fails with "client version X.XX is too new. Maximum supported
+# API version is Y.YY". Detect this before anything else runs.
+_docker_probe=$(docker info 2>&1 || true)
+if echo "$_docker_probe" | grep -qi "Maximum supported API version"; then
+  _max_ver=$(echo "$_docker_probe" | grep -oE 'Maximum supported API version is [0-9.]+' | grep -oE '[0-9.]+$')
+  if [[ -n "$_max_ver" ]]; then
+    export DOCKER_API_VERSION="$_max_ver"
+    warn "Docker CLI/daemon API mismatch — pinned DOCKER_API_VERSION=$_max_ver"
+    # Verify it works now
+    if ! docker info &>/dev/null; then
+      die "Docker still not responding after API version pin. Upgrade docker daemon or reinstall docker packages."
+    fi
+    ok "Docker API negotiated successfully"
   fi
 fi
 
