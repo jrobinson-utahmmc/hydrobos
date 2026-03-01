@@ -301,6 +301,20 @@ if [[ "$stale" -gt 0 ]]; then
   ok "Stale containers removed"
 fi
 
+# Remove stale Docker network if labels conflict with current compose config
+if docker network inspect hydrobos-network &>/dev/null; then
+  _net_label=$(docker network inspect hydrobos-network --format '{{index .Labels "com.docker.compose.network"}}' 2>/dev/null || true)
+  if [[ -n "$_net_label" && "$_net_label" != "hydrobos" ]]; then
+    warn "Docker network 'hydrobos-network' has stale labels — removing..."
+    # Disconnect any lingering containers first
+    for cid in $(docker network inspect hydrobos-network --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null); do
+      docker network disconnect -f hydrobos-network "$cid" 2>/dev/null || true
+    done
+    docker network rm hydrobos-network 2>/dev/null || true
+    ok "Stale network removed (will be recreated)"
+  fi
+fi
+
 # ══════════════════════════════════════════════════════════════
 #  STEP 3: Environment File
 # ══════════════════════════════════════════════════════════════
