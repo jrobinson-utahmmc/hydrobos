@@ -35,6 +35,33 @@ export interface SystemStatus {
   ssoProvider?: string;
 }
 
+// ── Password Reset & Invite Types ──
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface InviteAcceptRequest {
+  token: string;
+  password: string;
+}
+
+export interface InviteValidationResponse {
+  valid: boolean;
+  email: string;
+  displayName: string;
+}
+
 // ── Entra ID / SSO Types ──
 
 export interface EntraIdConfig {

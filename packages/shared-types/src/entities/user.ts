@@ -16,10 +16,13 @@ export interface User {
   avatarUrl?: string;
   jobTitle?: string;
   department?: string;
+  phone?: string;
   entraId?: string;           // Azure AD object ID (if SSO user)
   groups?: string[];           // AD group memberships
   lastLogin?: string;
   mfaEnabled?: boolean;
+  inviteAccepted?: boolean;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,4 +40,32 @@ export interface UpdateUserDto {
   isActive?: boolean;
   jobTitle?: string;
   department?: string;
+  phone?: string;
+}
+
+export interface InviteUserDto {
+  email: string;
+  displayName: string;
+  role?: UserRole;
+  jobTitle?: string;
+  department?: string;
+}
+
+export interface AuditLogEntry {
+  _id: string;
+  action: string;
+  category: 'user' | 'auth' | 'organization' | 'tenant' | 'sso' | 'system';
+  performedBy: {
+    userId: string;
+    email: string;
+    displayName?: string;
+  };
+  target?: {
+    type: string;
+    id: string;
+    label?: string;
+  };
+  details?: Record<string, any>;
+  ipAddress?: string;
+  createdAt: string;
 }

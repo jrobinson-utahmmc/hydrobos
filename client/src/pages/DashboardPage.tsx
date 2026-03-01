@@ -7,16 +7,14 @@ import {
   ArrowUpRight,
   Server,
   Database,
-  Shield,
   Zap,
   Puzzle,
   LayoutGrid,
-  Settings,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const colorMap: Record<string, { bg: string; icon: string }> = {
-  blue: { bg: 'bg-blue-100 dark:bg-blue-900/20', icon: 'text-blue-600 dark:text-blue-400' },
+  blue: { bg: 'bg-slate-100 dark:bg-slate-800/30', icon: 'text-slate-700 dark:text-blue-400' },
   green: { bg: 'bg-green-100 dark:bg-green-900/20', icon: 'text-green-600 dark:text-green-400' },
   indigo: { bg: 'bg-indigo-100 dark:bg-indigo-900/20', icon: 'text-indigo-600 dark:text-indigo-400' },
   purple: { bg: 'bg-purple-100 dark:bg-purple-900/20', icon: 'text-purple-600 dark:text-purple-400' },
@@ -41,8 +39,6 @@ const systemInfo = [
 const quickActions = [
   { label: 'Widget Builder', icon: Puzzle, description: 'Create custom widgets', path: '/widget-builder' },
   { label: 'My Dashboards', icon: LayoutGrid, description: 'Manage dashboards', path: '/dashboards' },
-  { label: 'Admin Settings', icon: Settings, description: 'Org, tenants & SSO', path: '/admin' },
-  { label: 'Security & SSO', icon: Shield, description: 'Entra ID config', path: '/admin' },
 ];
 
 export function DashboardPage() {
@@ -126,10 +122,10 @@ export function DashboardPage() {
               <button
                 key={action.label}
                 onClick={() => navigate(action.path)}
-                className="flex flex-col items-start gap-2 p-4 bg-[var(--bg-tertiary)] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl text-left transition-all group border border-transparent hover:border-[var(--accent)]/20"
+                className="flex flex-col items-start gap-2 p-4 bg-[var(--bg-tertiary)] hover:bg-slate-100 dark:hover:bg-slate-800/30 rounded-xl text-left transition-all group border border-transparent hover:border-[var(--accent)]/20"
               >
-                <div className="w-9 h-9 rounded-lg bg-[var(--bg-secondary)] group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 flex items-center justify-center transition-colors">
-                  <action.icon className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                <div className="w-9 h-9 rounded-lg bg-[var(--bg-secondary)] group-hover:bg-slate-200 dark:group-hover:bg-slate-700/40 flex items-center justify-center transition-colors">
+                  <action.icon className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-slate-800 dark:group-hover:text-blue-400 transition-colors" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[var(--text-primary)]">{action.label}</p>
@@ -141,7 +137,7 @@ export function DashboardPage() {
         </div>
 
         {/* Stage 2 banner */}
-        <div className="lg:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white relative overflow-hidden">
+        <div className="lg:col-span-2 bg-gradient-to-r from-slate-900 to-blue-950 rounded-xl p-6 text-white relative overflow-hidden">
           <div className="absolute -right-12 -top-12 w-40 h-40 bg-white/10 rounded-full" />
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full" />
           <div className="relative">
@@ -151,10 +147,10 @@ export function DashboardPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-lg">Stage 3 — Admin Portal & Multi-Tenancy</h3>
-                <p className="text-sm text-blue-100">Organization, Tenants, Entra ID SSO, Users</p>
+                <p className="text-sm text-slate-400">Organization, Tenants, Entra ID SSO, Users</p>
               </div>
             </div>
-            <p className="text-sm text-blue-100 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
               HydroBOS now runs on a microservices architecture with an API Gateway, Identity
               Service (local + Entra ID SSO), and Widget Service. Multi-tenant database isolation,
               admin portal, and organization management are live.

@@ -294,8 +294,8 @@ export function WidgetBuilderPage() {
                   className="flex flex-col items-start p-5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl hover:shadow-md hover:border-[var(--accent)]/30 transition-all text-left group"
                 >
                   <div className="flex items-center justify-between w-full mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-                      <Icon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center group-hover:bg-slate-100 dark:group-hover:bg-slate-800/30 transition-colors">
+                      <Icon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-slate-800 dark:group-hover:text-blue-400" />
                     </div>
                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium capitalize ${categoryColors[t.category] || categoryColors.custom}`}>
                       {t.category}

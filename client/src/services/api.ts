@@ -59,6 +59,41 @@ export const authApi = {
     apiRequest('/auth/logout', { method: 'POST' }),
 
   me: () => apiRequest('/auth/me'),
+
+  forgotPassword: (email: string) =>
+    apiRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, password: string) =>
+    apiRequest('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiRequest('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  validateInvite: (token: string) =>
+    apiRequest<{ valid: boolean; email: string; displayName: string }>(
+      `/auth/invite/validate?token=${token}`
+    ),
+
+  acceptInvite: (token: string, password: string) =>
+    apiRequest('/auth/invite/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
+
+  updateProfile: (data: { displayName?: string; jobTitle?: string; department?: string; phone?: string }) =>
+    apiRequest('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
 // ── System API ──
@@ -70,6 +105,86 @@ export const systemApi = {
       version: string;
       name: string;
     }>('/system/status'),
+};
+
+// ── User Management API (Admin) ──
+
+export const userApi = {
+  list: (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.pageSize) query.set('pageSize', params.pageSize.toString());
+    if (params?.search) query.set('search', params.search);
+    if (params?.role) query.set('role', params.role);
+    if (params?.status) query.set('status', params.status);
+    if (params?.sort) query.set('sort', params.sort);
+    if (params?.order) query.set('order', params.order);
+    const qs = query.toString();
+    return apiRequest<{ data: any[]; total: number; page: number; pageSize: number; totalPages: number }>(
+      `/users${qs ? `?${qs}` : ''}`
+    );
+  },
+
+  get: (id: string) =>
+    apiRequest<{ data: any }>(`/users/${id}`),
+
+  create: (data: {
+    email: string;
+    password: string;
+    displayName: string;
+    role?: string;
+    jobTitle?: string;
+    department?: string;
+  }) =>
+    apiRequest('/users', { method: 'POST', body: JSON.stringify(data) }),
+
+  update: (id: string, data: {
+    displayName?: string;
+    role?: string;
+    isActive?: boolean;
+    jobTitle?: string;
+    department?: string;
+    phone?: string;
+  }) =>
+    apiRequest(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  delete: (id: string) =>
+    apiRequest(`/users/${id}`, { method: 'DELETE' }),
+
+  invite: (data: {
+    email: string;
+    displayName: string;
+    role?: string;
+    jobTitle?: string;
+    department?: string;
+  }) =>
+    apiRequest<{ message: string; inviteUrl: string; user: any }>(
+      '/users/invite', { method: 'POST', body: JSON.stringify(data) }
+    ),
+
+  resendInvite: (userId: string) =>
+    apiRequest<{ message: string; inviteUrl: string }>(
+      '/users/invite/resend', { method: 'POST', body: JSON.stringify({ userId }) }
+    ),
+
+  auditLogs: (params?: { page?: number; pageSize?: number; category?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.pageSize) query.set('pageSize', params.pageSize.toString());
+    if (params?.category) query.set('category', params.category);
+    const qs = query.toString();
+    return apiRequest<{ data: any[]; total: number; page: number; totalPages: number }>(
+      `/users/audit/logs${qs ? `?${qs}` : ''}`
+    );
+  },
 };
 
 // ── Dashboard API ──
@@ -189,4 +304,33 @@ export const ssoConfigApi = {
 
   testConnection: () =>
     apiRequest<{ enabled: boolean; provider: string | null }>('/auth/sso/status'),
+
+  triggerSync: () =>
+    apiRequest<{
+      message: string;
+      result: {
+        created: number;
+        updated: number;
+        deactivated: number;
+        skipped: number;
+        errors: string[];
+        total: number;
+      };
+    }>('/sso/config/sync', { method: 'POST' }),
+
+  syncStatus: () =>
+    apiRequest<{
+      configured: boolean;
+      enabled: boolean;
+      users: { total: number; active: number; disabled: number };
+      lastSync: {
+        timestamp: string;
+        totalGraphUsers?: number;
+        created?: number;
+        updated?: number;
+        deactivated?: number;
+        skipped?: number;
+        errors?: number;
+      } | null;
+    }>('/sso/config/sync/status'),
 };

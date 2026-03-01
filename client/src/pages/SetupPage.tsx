@@ -29,7 +29,7 @@ function getPasswordStrength(password: string) {
 
   if (score <= 2) return { score, max: 6, label: 'Weak', color: 'bg-red-500' };
   if (score <= 3) return { score, max: 6, label: 'Fair', color: 'bg-amber-500' };
-  if (score <= 4) return { score, max: 6, label: 'Good', color: 'bg-blue-500' };
+  if (score <= 4) return { score, max: 6, label: 'Good', color: 'bg-slate-500' };
   return { score, max: 6, label: 'Strong', color: 'bg-green-500' };
 }
 
@@ -106,8 +106,8 @@ export function SetupPage() {
     <div className="auth-bg min-h-screen flex items-center justify-center p-4 relative">
       {/* Decorative gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-400/5 rounded-full blur-3xl" />
         <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl" />
       </div>
 
@@ -128,7 +128,7 @@ export function SetupPage() {
         <div className="bg-white/95 dark:bg-slate-800/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-2xl rounded-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl mb-4 shadow-lg shadow-blue-500/25">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-slate-900 to-blue-900 rounded-2xl mb-4 shadow-lg shadow-slate-900/30">
               <Droplets className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
@@ -139,7 +139,7 @@ export function SetupPage() {
             </p>
 
             {/* Setup badge */}
-            <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-full text-xs font-medium text-blue-600 dark:text-blue-400">
+            <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700/50 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400">
               <Shield className="w-3 h-3" />
               First-time setup
             </div>
@@ -169,7 +169,7 @@ export function SetupPage() {
                   onChange={(e) =>
                     updateForm('organizationName', e.target.value)
                   }
-                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                   placeholder="Acme Corp"
                 />
               </div>
@@ -186,7 +186,7 @@ export function SetupPage() {
                   type="text"
                   value={form.displayName}
                   onChange={(e) => updateForm('displayName', e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                   placeholder="John Robinson"
                   required
                 />
@@ -204,7 +204,7 @@ export function SetupPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => updateForm('email', e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                   placeholder="admin@company.com"
                   autoComplete="email"
                   required
@@ -223,7 +223,7 @@ export function SetupPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={(e) => updateForm('password', e.target.value)}
-                  className="w-full pl-11 pr-12 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  className="w-full pl-11 pr-12 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                   placeholder="Minimum 12 characters"
                   autoComplete="new-password"
                   required
@@ -312,7 +312,7 @@ export function SetupPage() {
                   onChange={(e) =>
                     updateForm('confirmPassword', e.target.value)
                   }
-                  className={`w-full pl-11 pr-10 py-2.5 bg-slate-50 dark:bg-slate-700/50 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                  className={`w-full pl-11 pr-10 py-2.5 bg-slate-50 dark:bg-slate-700/50 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
                     passwordMismatch
                       ? 'border-red-300 dark:border-red-700'
                       : passwordsMatch
@@ -338,7 +338,7 @@ export function SetupPage() {
             <button
               type="submit"
               disabled={isLoading || passwordMismatch}
-              className="w-full py-2.5 mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-sm"
+              className="w-full py-2.5 mt-2 bg-gradient-to-r from-slate-800 to-blue-900 hover:from-slate-900 hover:to-blue-950 text-white font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-slate-900/30 hover:shadow-slate-900/50 text-sm"
             >
               {isLoading ? (
                 <>

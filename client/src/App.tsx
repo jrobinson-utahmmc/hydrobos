@@ -6,6 +6,10 @@ import { DashboardPage } from './pages/DashboardPage';
 import { DashboardsPage } from './pages/DashboardsPage';
 import { WidgetBuilderPage } from './pages/WidgetBuilderPage';
 import { AdminPage } from './pages/AdminPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { InviteAcceptPage } from './pages/InviteAcceptPage';
 import { AppShell } from './components/layout/AppShell';
 import { Loader2 } from 'lucide-react';
 
@@ -68,6 +72,22 @@ export default function App() {
         element={<SetupPage />}
       />
       <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={<ResetPasswordPage />}
+      />
+      <Route
+        path="/invite"
+        element={<InviteAcceptPage />}
+      />
+      <Route
         path="/"
         element={
           <ProtectedRoute>
@@ -88,6 +108,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <WidgetBuilderPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
           </ProtectedRoute>
         }
       />

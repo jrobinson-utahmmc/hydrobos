@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { User } from '../models/User';
 import { generateToken, verifyToken } from '../utils/jwt';
+import { audit } from '../utils/audit';
 import {
   getSsoConfig,
   buildAuthorizeUrl,
@@ -189,6 +190,311 @@ router.get('/verify', async (req: Request, res: Response) => {
 // ──────────────────────────────────────
 
 /**
+ * POST /forgot-password — Request a password reset link
+ */
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ error: 'Email is required' });
+      return;
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim(), authProvider: 'local' });
+
+    // Always return success to prevent email enumeration
+    if (!user || !user.isActive) {
+      res.json({ message: 'If an account exists with this email, a reset link has been sent.' });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetToken = resetToken;
+    user.resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    const baseUrl = req.headers.origin || 'http://localhost:5000';
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+    console.log(`\n  🔑 Password reset requested for ${email}`);
+    console.log(`  └─ Reset URL: ${resetUrl}\n`);
+
+    await audit({
+      action: 'auth.password_reset_requested',
+      category: 'auth',
+      performedBy: { userId: user._id.toString(), email: user.email },
+      req,
+    });
+
+    res.json({ message: 'If an account exists with this email, a reset link has been sent.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process reset request' });
+  }
+});
+
+/**
+ * POST /reset-password — Reset password using token
+ */
+router.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      res.status(400).json({ error: 'Token and new password are required' });
+      return;
+    }
+
+    if (password.length < 12) {
+      res.status(400).json({ error: 'Password must be at least 12 characters' });
+      return;
+    }
+
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      res.status(400).json({ error: 'Password must contain uppercase, lowercase, and a number' });
+      return;
+    }
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    user.password = password;
+    user.resetToken = undefined;
+    user.resetExpires = undefined;
+    await user.save();
+
+    await audit({
+      action: 'auth.password_reset_completed',
+      category: 'auth',
+      performedBy: { userId: user._id.toString(), email: user.email },
+      req,
+    });
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+/**
+ * POST /change-password — Change password (authenticated user)
+ */
+router.post('/change-password', async (req: Request, res: Response) => {
+  try {
+    const jwtToken = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!jwtToken) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const decoded = verifyToken(jwtToken);
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Current password and new password are required' });
+      return;
+    }
+
+    if (newPassword.length < 12) {
+      res.status(400).json({ error: 'New password must be at least 12 characters' });
+      return;
+    }
+
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasLowercase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      res.status(400).json({ error: 'Password must contain uppercase, lowercase, and a number' });
+      return;
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user || user.authProvider !== 'local') {
+      res.status(400).json({ error: 'Password change is only available for local accounts' });
+      return;
+    }
+
+    const valid = await user.comparePassword(currentPassword);
+    if (!valid) {
+      res.status(401).json({ error: 'Current password is incorrect' });
+      return;
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await audit({
+      action: 'auth.password_changed',
+      category: 'auth',
+      performedBy: { userId: user._id.toString(), email: user.email },
+      req,
+    });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
+/**
+ * GET /invite/validate — Validate an invite token
+ */
+router.get('/invite/validate', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      res.status(400).json({ error: 'Token is required', valid: false });
+      return;
+    }
+
+    const user = await User.findOne({
+      inviteToken: token,
+      inviteExpires: { $gt: new Date() },
+      inviteAccepted: false,
+    }).select('email displayName');
+
+    if (!user) {
+      res.status(400).json({ error: 'Invalid or expired invitation', valid: false });
+      return;
+    }
+
+    res.json({
+      valid: true,
+      email: user.email,
+      displayName: user.displayName,
+    });
+  } catch (error) {
+    console.error('Validate invite error:', error);
+    res.status(500).json({ error: 'Failed to validate invitation', valid: false });
+  }
+});
+
+/**
+ * POST /invite/accept — Accept an invitation and set password
+ */
+router.post('/invite/accept', async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      res.status(400).json({ error: 'Token and password are required' });
+      return;
+    }
+
+    if (password.length < 12) {
+      res.status(400).json({ error: 'Password must be at least 12 characters' });
+      return;
+    }
+
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      res.status(400).json({ error: 'Password must contain uppercase, lowercase, and a number' });
+      return;
+    }
+
+    const user = await User.findOne({
+      inviteToken: token,
+      inviteExpires: { $gt: new Date() },
+      inviteAccepted: false,
+    });
+
+    if (!user) {
+      res.status(400).json({ error: 'Invalid or expired invitation' });
+      return;
+    }
+
+    user.password = password;
+    user.inviteToken = undefined;
+    user.inviteExpires = undefined;
+    user.inviteAccepted = true;
+    user.emailVerified = true;
+    await user.save();
+
+    // Auto-login after accepting invite
+    const jwtToken = generateToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      authProvider: 'local',
+    });
+
+    res.cookie('token', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    await audit({
+      action: 'auth.invite_accepted',
+      category: 'auth',
+      performedBy: { userId: user._id.toString(), email: user.email },
+      req,
+    });
+
+    res.json({ message: 'Account activated successfully', user: user.toJSON() });
+  } catch (error) {
+    console.error('Accept invite error:', error);
+    res.status(500).json({ error: 'Failed to accept invitation' });
+  }
+});
+
+/**
+ * PATCH /profile — Update own profile (authenticated user)
+ */
+router.patch('/profile', async (req: Request, res: Response) => {
+  try {
+    const jwtToken = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!jwtToken) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const decoded = verifyToken(jwtToken);
+    const { displayName, jobTitle, department, phone } = req.body;
+    const update: any = {};
+
+    if (displayName !== undefined) update.displayName = displayName;
+    if (jobTitle !== undefined) update.jobTitle = jobTitle;
+    if (department !== undefined) update.department = department;
+    if (phone !== undefined) update.phone = phone;
+
+    const user = await User.findByIdAndUpdate(decoded.userId, update, { new: true }).select('-password -resetToken -inviteToken');
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    await audit({
+      action: 'user.profile_updated',
+      category: 'user',
+      performedBy: { userId: user._id.toString(), email: user.email },
+      details: update,
+      req,
+    });
+
+    res.json({ user: user.toJSON() });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+/**
  * GET /sso/status — Check if SSO is enabled
  */
 router.get('/sso/status', async (_req: Request, res: Response) => {
@@ -282,6 +588,20 @@ router.get('/sso/callback', async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    // Audit log SSO login
+    await audit({
+      action: 'auth.sso_login',
+      category: 'sso',
+      performedBy: { userId: user._id.toString(), email: user.email, displayName: user.displayName },
+      details: {
+        provider: 'entra_id',
+        entraId: claims.oid,
+        groups: graphProfile.groups,
+        role: user.role,
+      },
+      req,
     });
 
     // Redirect to frontend

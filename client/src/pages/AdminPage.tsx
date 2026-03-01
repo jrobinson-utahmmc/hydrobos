@@ -19,8 +19,17 @@ import {
   Server,
   ChevronRight,
   Info,
+  Search,
+  Edit3,
+  Mail,
+  Send,
+  Filter,
+  FileText,
+  Clock,
+  UserPlus,
+  ChevronDown,
 } from 'lucide-react';
-import { organizationApi, tenantApi, ssoConfigApi, authApi } from '../services/api';
+import { organizationApi, tenantApi, ssoConfigApi, authApi, userApi, apiRequest } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 type AdminTab = 'organization' | 'tenants' | 'sso' | 'users';
@@ -56,7 +65,7 @@ export function AdminPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               activeTab === tab.id
-                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-500/20'
+                ? 'bg-gradient-to-r from-slate-800 to-blue-900 text-white shadow-md shadow-slate-900/25'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
             }`}
           >
@@ -316,7 +325,7 @@ function OrganizationTab() {
       <button
         type="submit"
         disabled={saving || !form.name}
-        className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-blue-500/25 text-sm"
+        className="px-6 py-2.5 bg-gradient-to-r from-slate-800 to-blue-900 hover:from-slate-900 hover:to-blue-950 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-slate-900/30 text-sm"
       >
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
         Save Organization Settings
@@ -453,7 +462,7 @@ function TenantsTab() {
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-blue-800 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-xl text-sm font-medium shadow-md shadow-slate-900/20 hover:from-slate-900 hover:to-blue-950 transition-all"
         >
           <Plus className="w-4 h-4" />
           New Tenant
@@ -546,7 +555,7 @@ function TenantsTab() {
             <button
               type="submit"
               disabled={creating || !newTenant.name}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2 transition-all"
+              className="px-4 py-2 bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2 transition-all"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
               Create & Provision Database
@@ -560,9 +569,9 @@ function TenantsTab() {
             </button>
           </div>
 
-          <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50 rounded-lg">
-            <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-600 dark:text-blue-400">
+          <div className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-700/50 rounded-lg">
+            <Info className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Creating a tenant provisions a new MongoDB database with isolated collections for users, dashboards,
               widgets, and audit logs. A unique tenant ID (e.g., <code className="font-mono">tnt_k7x9m2p4</code>) is auto-generated.
             </p>
@@ -831,27 +840,27 @@ function SsoTab() {
       )}
 
       {/* Setup Guide */}
-      <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50 rounded-xl p-5">
-        <h4 className="font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2 mb-3">
+      <div className="bg-slate-50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-700/50 rounded-xl p-5">
+        <h4 className="font-medium text-slate-800 dark:text-slate-300 flex items-center gap-2 mb-3">
           <Shield className="w-5 h-5" />
           Microsoft Entra ID Setup Guide
         </h4>
-        <ol className="space-y-2 text-sm text-blue-700 dark:text-blue-400">
+        <ol className="space-y-2 text-sm text-slate-700 dark:text-slate-400">
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+            <span className="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
             <span>Go to <strong>Azure Portal</strong> → <strong>Microsoft Entra ID</strong> → <strong>App registrations</strong> → <strong>New registration</strong></span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-            <span>Set the <strong>Redirect URI</strong> to: <code className="font-mono bg-blue-100 dark:bg-blue-800/50 px-1 rounded">{form.redirectUri}</code></span>
+            <span className="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+            <span>Set the <strong>Redirect URI</strong> to: <code className="font-mono bg-slate-100 dark:bg-slate-700/50 px-1 rounded">{form.redirectUri}</code></span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+            <span className="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
             <span>Under <strong>Certificates & secrets</strong>, create a new <strong>Client secret</strong></span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-            <span>Under <strong>API Permissions</strong>, add <code className="font-mono bg-blue-100 dark:bg-blue-800/50 px-1 rounded">User.Read</code> and <code className="font-mono bg-blue-100 dark:bg-blue-800/50 px-1 rounded">GroupMember.Read.All</code> (delegated)</span>
+            <span className="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
+            <span>Under <strong>API Permissions</strong>, add <code className="font-mono bg-slate-100 dark:bg-slate-700/50 px-1 rounded">User.Read</code> and <code className="font-mono bg-slate-100 dark:bg-slate-700/50 px-1 rounded">GroupMember.Read.All</code> (delegated)</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="w-5 h-5 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
@@ -1071,7 +1080,7 @@ function SsoTab() {
         <button
           type="submit"
           disabled={saving || !form.tenantId || !form.clientId}
-          className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-blue-500/25 text-sm"
+          className="px-6 py-2.5 bg-gradient-to-r from-slate-800 to-blue-900 hover:from-slate-900 hover:to-blue-950 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-slate-900/30 text-sm"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
           Save SSO Configuration
@@ -1098,7 +1107,162 @@ function SsoTab() {
           </button>
         )}
       </div>
+
+      {/* User Sync Section */}
+      {configured && <SsoSyncSection />}
     </form>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   SSO User Sync Section
+   ═══════════════════════════════════════════════ */
+
+function SsoSyncSection() {
+  const [syncStatus, setSyncStatus] = useState<any>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<any>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSyncStatus();
+  }, []);
+
+  async function loadSyncStatus() {
+    try {
+      const res = await ssoConfigApi.syncStatus();
+      setSyncStatus(res);
+    } catch {
+      // Not available
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    setError('');
+    setSyncResult(null);
+    try {
+      const res = await ssoConfigApi.triggerSync();
+      setSyncResult(res.result);
+      await loadSyncStatus();
+    } catch (err: any) {
+      setError(err.message || 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <Loader2 className="w-5 h-5 animate-spin text-[var(--accent)]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-6 space-y-5 mt-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-[var(--accent)]" />
+            Microsoft Graph User Sync
+          </h3>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Sync users from Azure AD into HydroBOS. Disabled accounts in Entra ID are automatically deactivated.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncing}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+        >
+          {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          {syncing ? 'Syncing...' : 'Sync Now'}
+        </button>
+      </div>
+
+      {/* Sync Status Cards */}
+      {syncStatus && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-[var(--bg-tertiary)] rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-[var(--text-primary)]">{syncStatus.users?.total || 0}</div>
+            <div className="text-xs text-[var(--text-secondary)]">Total SSO Users</div>
+          </div>
+          <div className="bg-[var(--bg-tertiary)] rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{syncStatus.users?.active || 0}</div>
+            <div className="text-xs text-[var(--text-secondary)]">Active</div>
+          </div>
+          <div className="bg-[var(--bg-tertiary)] rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-red-500 dark:text-red-400">{syncStatus.users?.disabled || 0}</div>
+            <div className="text-xs text-[var(--text-secondary)]">Disabled</div>
+          </div>
+        </div>
+      )}
+
+      {/* Last Sync Info */}
+      {syncStatus?.lastSync && (
+        <div className="text-xs text-[var(--text-secondary)] flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" />
+          Last synced: {new Date(syncStatus.lastSync.timestamp).toLocaleString()}
+          {syncStatus.lastSync.totalGraphUsers !== undefined && (
+            <span className="ml-2">
+              ({syncStatus.lastSync.created || 0} created, {syncStatus.lastSync.updated || 0} updated, {syncStatus.lastSync.deactivated || 0} deactivated)
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Sync Result */}
+      {syncResult && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg p-4 text-sm space-y-2 animate-fade-in">
+          <div className="font-medium text-green-800 dark:text-green-300 flex items-center gap-2">
+            <Check className="w-4 h-4" />
+            Sync completed — {syncResult.total} Azure AD users processed
+          </div>
+          <div className="grid grid-cols-4 gap-3 text-xs">
+            <div><span className="font-medium text-green-700 dark:text-green-400">{syncResult.created}</span> created</div>
+            <div><span className="font-medium text-blue-700 dark:text-blue-400">{syncResult.updated}</span> updated</div>
+            <div><span className="font-medium text-red-700 dark:text-red-400">{syncResult.deactivated}</span> deactivated</div>
+            <div><span className="font-medium text-slate-700 dark:text-slate-400">{syncResult.skipped}</span> skipped</div>
+          </div>
+          {syncResult.errors?.length > 0 && (
+            <div className="mt-2 text-xs text-red-600 dark:text-red-400">
+              <p className="font-medium">{syncResult.errors.length} error(s):</p>
+              <ul className="list-disc list-inside mt-1">
+                {syncResult.errors.slice(0, 5).map((e: string, i: number) => (
+                  <li key={i}>{e}</li>
+                ))}
+                {syncResult.errors.length > 5 && <li>...and {syncResult.errors.length - 5} more</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg p-3 text-sm text-red-700 dark:text-red-400 flex items-center gap-2 animate-fade-in">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+
+      {/* Permissions Note */}
+      <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-lg p-3 text-xs text-blue-700 dark:text-blue-400">
+        <p className="font-medium flex items-center gap-1.5">
+          <Info className="w-3.5 h-3.5" />
+          Required Azure AD Permissions
+        </p>
+        <p className="mt-1">
+          Bulk sync requires <code className="bg-blue-100 dark:bg-blue-800/30 px-1 rounded">User.Read.All</code> and <code className="bg-blue-100 dark:bg-blue-800/30 px-1 rounded">GroupMember.Read.All</code> as <strong>Application</strong> permissions (not delegated) with admin consent granted.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -1109,8 +1273,37 @@ function SsoTab() {
 function UsersTab() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Create / Invite
   const [showCreate, setShowCreate] = useState(false);
+  const [createMode, setCreateMode] = useState<'create' | 'invite'>('invite');
   const [creating, setCreating] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+
+  // Edit
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    displayName: '',
+    role: '',
+    jobTitle: '',
+    department: '',
+    phone: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  // Audit Logs
+  const [showAudit, setShowAudit] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [newUser, setNewUser] = useState({
@@ -1118,18 +1311,38 @@ function UsersTab() {
     password: '',
     displayName: '',
     role: 'user',
+    jobTitle: '',
+    department: '',
   });
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [page, roleFilter, statusFilter]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      loadUsers();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   async function loadUsers() {
     try {
-      const res = await apiRequest<{ data: any[] }>('/users');
+      setLoading(true);
+      const res = await userApi.list({
+        page,
+        pageSize: 25,
+        search: search || undefined,
+        role: roleFilter !== 'all' ? roleFilter : undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+      });
       setUsers(res.data);
+      setTotal(res.total);
+      setTotalPages(res.totalPages);
     } catch {
-      // Not available
+      // Service unavailable
     } finally {
       setLoading(false);
     }
@@ -1139,14 +1352,31 @@ function UsersTab() {
     e.preventDefault();
     setCreating(true);
     setMessage(null);
+    setInviteUrl(null);
     try {
-      await apiRequest('/users', {
-        method: 'POST',
-        body: JSON.stringify(newUser),
-      });
-      setMessage({ type: 'success', text: `User "${newUser.displayName}" created` });
-      setShowCreate(false);
-      setNewUser({ email: '', password: '', displayName: '', role: 'user' });
+      if (createMode === 'invite') {
+        const res = await userApi.invite({
+          email: newUser.email,
+          displayName: newUser.displayName,
+          role: newUser.role,
+          jobTitle: newUser.jobTitle || undefined,
+          department: newUser.department || undefined,
+        });
+        setMessage({ type: 'success', text: `Invitation sent to ${newUser.email}` });
+        setInviteUrl(res.inviteUrl);
+      } else {
+        await userApi.create({
+          email: newUser.email,
+          password: newUser.password,
+          displayName: newUser.displayName,
+          role: newUser.role,
+          jobTitle: newUser.jobTitle || undefined,
+          department: newUser.department || undefined,
+        });
+        setMessage({ type: 'success', text: `User "${newUser.displayName}" created` });
+        setShowCreate(false);
+      }
+      setNewUser({ email: '', password: '', displayName: '', role: 'user', jobTitle: '', department: '' });
       await loadUsers();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Failed to create user' });
@@ -1155,16 +1385,68 @@ function UsersTab() {
     }
   }
 
+  async function handleResendInvite(userId: string) {
+    try {
+      const res = await userApi.resendInvite(userId);
+      setMessage({ type: 'success', text: res.message });
+      setInviteUrl(res.inviteUrl);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    }
+  }
+
   async function toggleActive(userId: string, isActive: boolean) {
     try {
-      await apiRequest(`/users/${userId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ isActive: !isActive }),
-      });
+      await userApi.update(userId, { isActive: !isActive });
+      setMessage({ type: 'success', text: isActive ? 'User disabled' : 'User enabled' });
       await loadUsers();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     }
+  }
+
+  function openEdit(user: any) {
+    setEditingUser(user);
+    setEditForm({
+      displayName: user.displayName || '',
+      role: user.role || 'user',
+      jobTitle: user.jobTitle || '',
+      department: user.department || '',
+      phone: user.phone || '',
+    });
+  }
+
+  async function handleSaveEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!editingUser) return;
+    setSaving(true);
+    try {
+      await userApi.update(editingUser._id, editForm);
+      setMessage({ type: 'success', text: `User "${editForm.displayName}" updated` });
+      setEditingUser(null);
+      await loadUsers();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function loadAuditLogs() {
+    setAuditLoading(true);
+    try {
+      const res = await userApi.auditLogs({ pageSize: 50, category: 'user' });
+      setAuditLogs(res.data);
+    } catch {
+      // Not available
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
+  function toggleAuditPanel() {
+    setShowAudit(!showAudit);
+    if (!showAudit) loadAuditLogs();
   }
 
   const roleColors: Record<string, string> = {
@@ -1177,13 +1459,15 @@ function UsersTab() {
     executive_viewer: 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400',
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
-      </div>
-    );
-  }
+  const allRoles = [
+    { value: 'user', label: 'User' },
+    { value: 'viewer', label: 'Viewer' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'it_operations', label: 'IT Operations' },
+    { value: 'security_analyst', label: 'Security Analyst' },
+    { value: 'executive_viewer', label: 'Executive Viewer' },
+    { value: 'platform_admin', label: 'Platform Admin' },
+  ];
 
   return (
     <div className="space-y-4">
@@ -1196,160 +1480,459 @@ function UsersTab() {
           }`}
         >
           {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-          {message.text}
+          <span className="flex-1">{message.text}</span>
+          <button onClick={() => setMessage(null)} className="opacity-60 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium text-[var(--text-primary)]">User Accounts ({users.length})</h3>
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-blue-800 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          New User
-        </button>
+      {/* Invite URL display */}
+      {inviteUrl && (
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 animate-fade-in">
+          <p className="text-sm font-medium text-[var(--text-primary)] mb-2 flex items-center gap-2"><Mail className="w-4 h-4" /> Invitation Link</p>
+          <p className="text-xs text-[var(--text-secondary)] mb-2">Share this link with the user. Expires in 7 days.</p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-xs bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg text-[var(--text-primary)] overflow-x-auto">{inviteUrl}</code>
+            <button
+              onClick={() => { navigator.clipboard.writeText(inviteUrl); setMessage({ type: 'success', text: 'Link copied to clipboard' }); }}
+              className="px-3 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] rounded-lg transition-colors"
+            >
+              <Copy className="w-4 h-4 text-[var(--text-secondary)]" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header + Controls */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h3 className="font-medium text-[var(--text-primary)]">User Directory ({total})</h3>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleAuditPanel}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+              showAudit
+                ? 'bg-slate-200 dark:bg-slate-700 text-[var(--text-primary)]'
+                : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Audit Log
+          </button>
+          <button
+            onClick={() => { setShowCreate(!showCreate); setInviteUrl(null); }}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-xl text-sm font-medium shadow-md shadow-slate-900/20 hover:from-slate-900 hover:to-blue-950 transition-all"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add User
+          </button>
+        </div>
       </div>
 
-      {/* Create User Form */}
-      {showCreate && (
-        <form
-          onSubmit={handleCreate}
-          className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-6 space-y-4 animate-fade-in"
+      {/* Search + Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            placeholder="Search users by name, email, title, department..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+          />
+        </div>
+        <select
+          value={roleFilter}
+          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
+          className="px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)]"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Display Name *</label>
-              <input
-                type="text"
-                value={newUser.displayName}
-                onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Email *</label>
-              <input
-                type="email"
-                value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Password * (min 12 chars)</label>
-              <input
-                type="password"
-                value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
-                minLength={12}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Role</label>
-              <select
-                value={newUser.role}
-                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)]"
-              >
-                <option value="user">User</option>
-                <option value="viewer">Viewer</option>
-                <option value="admin">Admin</option>
-                <option value="it_operations">IT Operations</option>
-                <option value="security_analyst">Security Analyst</option>
-                <option value="executive_viewer">Executive Viewer</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-2">
+          <option value="all">All Roles</option>
+          {allRoles.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          className="px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)]"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+          <option value="invited">Pending Invite</option>
+        </select>
+      </div>
+
+      {/* Create / Invite User Form */}
+      {showCreate && (
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-6 space-y-4 animate-fade-in">
+          {/* Mode Toggle */}
+          <div className="flex gap-1 p-1 bg-[var(--bg-tertiary)] rounded-lg w-fit">
             <button
-              type="submit"
-              disabled={creating}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+              type="button"
+              onClick={() => setCreateMode('invite')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                createMode === 'invite'
+                  ? 'bg-gradient-to-r from-slate-800 to-blue-900 text-white shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
             >
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Create User
+              <Send className="w-3 h-3" />
+              Invite
             </button>
             <button
               type="button"
-              onClick={() => setShowCreate(false)}
-              className="px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-lg text-sm font-medium"
+              onClick={() => setCreateMode('create')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                createMode === 'create'
+                  ? 'bg-gradient-to-r from-slate-800 to-blue-900 text-white shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
             >
-              Cancel
+              <Plus className="w-3 h-3" />
+              Direct Create
             </button>
           </div>
-        </form>
+          <p className="text-xs text-[var(--text-secondary)]">
+            {createMode === 'invite'
+              ? 'Send an invitation link. The user will set their own password.'
+              : 'Create an account with a password set by you.'}
+          </p>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Display Name *</label>
+                <input
+                  type="text"
+                  value={newUser.displayName}
+                  onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Email *</label>
+                <input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                  required
+                />
+              </div>
+              {createMode === 'create' && (
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Password * (min 12 chars)</label>
+                  <input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                    minLength={12}
+                    required
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Role</label>
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)]"
+                >
+                  {allRoles.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Job Title</label>
+                <input
+                  type="text"
+                  value={newUser.jobTitle}
+                  onChange={(e) => setNewUser({ ...newUser, jobTitle: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Department</label>
+                <input
+                  type="text"
+                  value={newUser.department}
+                  onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={creating}
+                className="px-4 py-2 bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+              >
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : createMode === 'invite' ? <Send className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {createMode === 'invite' ? 'Send Invitation' : 'Create User'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowCreate(false); setInviteUrl(null); }}
+                className="px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-lg text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in" onClick={() => setEditingUser(null)}>
+          <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Edit User</h3>
+              <button onClick={() => setEditingUser(null)} className="p-1 hover:bg-[var(--bg-tertiary)] rounded-lg"><X className="w-5 h-5 text-[var(--text-secondary)]" /></button>
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">{editingUser.email}</p>
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Display Name</label>
+                <input
+                  type="text"
+                  value={editForm.displayName}
+                  onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Role</label>
+                <select
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)]"
+                >
+                  {allRoles.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Job Title</label>
+                  <input
+                    type="text"
+                    value={editForm.jobTitle}
+                    onChange={(e) => setEditForm({ ...editForm, jobTitle: e.target.value })}
+                    className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Department</label>
+                  <input
+                    type="text"
+                    value={editForm.department}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Phone</label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-4 py-2 bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Save Changes
+                </button>
+                <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-lg text-sm font-medium">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Audit Log Panel */}
+      {showAudit && (
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl overflow-hidden animate-fade-in">
+          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <FileText className="w-4 h-4" /> User Audit Trail
+            </h4>
+            <button onClick={() => loadAuditLogs()} className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded-lg"><RefreshCw className="w-3.5 h-3.5 text-[var(--text-secondary)]" /></button>
+          </div>
+          {auditLoading ? (
+            <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-[var(--accent)]" /></div>
+          ) : auditLogs.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-[var(--text-secondary)]">No audit logs yet.</div>
+          ) : (
+            <div className="max-h-64 overflow-y-auto divide-y divide-[var(--border)]">
+              {auditLogs.map((log) => (
+                <div key={log._id} className="px-4 py-2.5 flex items-start gap-3 text-xs">
+                  <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)] mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-[var(--text-primary)]">{log.performedBy?.email || 'System'}</span>
+                    <span className="text-[var(--text-secondary)]"> {formatAuditAction(log.action)}</span>
+                    {log.target?.label && <span className="text-[var(--text-secondary)]"> — {log.target.label}</span>}
+                    {log.details?.role && <span className="text-[var(--text-secondary)]"> (role: {log.details.role})</span>}
+                  </div>
+                  <span className="text-[var(--text-secondary)] whitespace-nowrap">{new Date(log.createdAt).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Users Table */}
-      <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)]">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">User</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Role</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Provider</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Last Login</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u._id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] transition-colors">
-                <td className="px-4 py-3">
-                  <div>
-                    <p className="font-medium text-[var(--text-primary)]">{u.displayName}</p>
-                    <p className="text-xs text-[var(--text-secondary)]">{u.email}</p>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-md ${roleColors[u.role] || roleColors.user}`}>
-                    {u.role?.replace(/_/g, ' ')}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[var(--text-secondary)]">
-                  {u.authProvider === 'entra_id' ? (
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-3 h-3" /> Entra ID
-                    </span>
-                  ) : (
-                    'Local'
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`flex items-center gap-1.5 text-xs font-medium ${u.isActive ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                    {u.isActive ? 'Active' : 'Disabled'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">
-                  {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => toggleActive(u._id, u.isActive)}
-                    className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                      u.isActive
-                        ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-                        : 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
-                    }`}
-                  >
-                    {u.isActive ? 'Disable' : 'Enable'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
+        </div>
+      ) : (
+        <>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">User</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Role</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider hidden md:table-cell">Title / Dept</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider hidden lg:table-cell">Last Login</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
+                      No users found matching your filters.
+                    </td>
+                  </tr>
+                ) : users.map((u) => (
+                  <tr key={u._id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] transition-colors">
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="font-medium text-[var(--text-primary)]">{u.displayName}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">{u.email}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-md ${roleColors[u.role] || roleColors.user}`}>
+                        {u.role?.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <div className="text-xs text-[var(--text-secondary)]">
+                        {u.jobTitle && <p>{u.jobTitle}</p>}
+                        {u.department && <p className="opacity-70">{u.department}</p>}
+                        {!u.jobTitle && !u.department && <span className="opacity-40">—</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.inviteAccepted === false ? (
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                          <Mail className="w-3 h-3" /> Pending Invite
+                        </span>
+                      ) : (
+                        <span className={`flex items-center gap-1.5 text-xs font-medium ${u.isActive ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                          {u.isActive ? 'Active' : 'Disabled'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">
+                      {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openEdit(u)}
+                          className="text-xs px-2 py-1 rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                          title="Edit user"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        {u.inviteAccepted === false && (
+                          <button
+                            onClick={() => handleResendInvite(u._id)}
+                            className="text-xs px-2 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                            title="Resend invite"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => toggleActive(u._id, u.isActive)}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                            u.isActive
+                              ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                              : 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
+                          }`}
+                        >
+                          {u.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm">
+              <p className="text-[var(--text-secondary)]">
+                Page {page} of {totalPages} ({total} users)
+              </p>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-// Need apiRequest imported at top level for UsersTab
-import { apiRequest } from '../services/api';
+function formatAuditAction(action: string): string {
+  const map: Record<string, string> = {
+    'user.created': 'created user',
+    'user.invited': 'invited user',
+    'user.invite_resent': 'resent invite to',
+    'user.updated': 'updated user',
+    'user.deactivated': 'deactivated user',
+    'user.reactivated': 'reactivated user',
+    'user.profile_updated': 'updated their profile',
+    'auth.password_changed': 'changed their password',
+    'auth.password_reset_requested': 'requested a password reset',
+    'auth.password_reset_completed': 'completed password reset',
+    'auth.invite_accepted': 'accepted their invitation',
+  };
+  return map[action] || action;
+}

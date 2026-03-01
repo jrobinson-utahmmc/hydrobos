@@ -5,6 +5,8 @@ import {
   Search,
   LogOut,
   ChevronDown,
+  Settings,
+  Shield,
 } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
@@ -56,7 +58,7 @@ export function TopBar() {
         {/* Notifications */}
         <button className="relative p-2 rounded-xl hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] transition-colors">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full ring-2 ring-[var(--bg-secondary)]" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-400 rounded-full ring-2 ring-[var(--bg-secondary)]" />
         </button>
 
         {/* User menu */}
@@ -65,7 +67,7 @@ export function TopBar() {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-blue-900 rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-white text-sm font-semibold">
                 {userInitial}
               </span>
@@ -91,13 +93,34 @@ export function TopBar() {
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                   {user?.email}
                 </p>
-                <span className="inline-flex items-center mt-1.5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md">
+                <span className="inline-flex items-center mt-1.5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-md">
                   {user?.role}
                 </span>
               </div>
 
               {/* Actions */}
               <div className="py-1">
+                <button
+                  onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </button>
+
+                {(user?.role === 'platform_admin' || user?.role === 'admin') && (
+                  <button
+                    onClick={() => { setShowUserMenu(false); navigate('/admin'); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </button>
+                )}
+              </div>
+
+              {/* Sign out */}
+              <div className="border-t border-[var(--border)] py-1">
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"

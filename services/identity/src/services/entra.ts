@@ -91,6 +91,39 @@ export async function exchangeCodeForTokens(
 }
 
 /**
+ * Obtain an app-level access token using client_credentials grant.
+ * Used for bulk user sync (no user login required).
+ */
+export async function getClientCredentialsToken(
+  ssoConfig: ISsoConfig
+): Promise<string> {
+  const tokenEndpoint = `https://login.microsoftonline.com/${ssoConfig.tenantId}/oauth2/v2.0/token`;
+
+  const body = new URLSearchParams({
+    client_id: ssoConfig.clientId,
+    client_secret: ssoConfig.clientSecret,
+    grant_type: 'client_credentials',
+    scope: 'https://graph.microsoft.com/.default',
+  });
+
+  const response = await fetch(tokenEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    const errorData: any = await response.json().catch(() => ({}));
+    throw new Error(
+      `Client credentials token failed: ${errorData.error_description || response.statusText}`
+    );
+  }
+
+  const data: any = await response.json();
+  return data.access_token;
+}
+
+/**
  * Decode and extract claims from the ID token (basic decode, not full verification).
  * In production, use a proper JWT library to verify the signature against
  * the OIDC discovery document's JWKS endpoint.
@@ -173,6 +206,70 @@ export async function fetchGraphProfile(accessToken: string): Promise<{
 }
 
 /**
+ * Fetch all users from the Azure AD tenant via Microsoft Graph (application-level).
+ * Requires `User.Read.All` application permission.
+ */
+export async function fetchAllGraphUsers(accessToken: string): Promise<Array<{
+  id: string;
+  displayName: string;
+  mail: string;
+  userPrincipalName: string;
+  jobTitle?: string;
+  department?: string;
+  accountEnabled: boolean;
+}>> {
+  const graphBase = 'https://graph.microsoft.com/v1.0';
+  const allUsers: any[] = [];
+  let nextLink: string | null =
+    `${graphBase}/users?$select=id,displayName,mail,userPrincipalName,jobTitle,department,accountEnabled&$top=100`;
+
+  while (nextLink) {
+    const res = await fetch(nextLink, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Graph users fetch failed: ${res.statusText}`);
+    }
+
+    const data: any = await res.json();
+    allUsers.push(...(data.value || []));
+    nextLink = data['@odata.nextLink'] || null;
+  }
+
+  return allUsers.map((u: any) => ({
+    id: u.id,
+    displayName: u.displayName || u.userPrincipalName,
+    mail: u.mail || u.userPrincipalName,
+    userPrincipalName: u.userPrincipalName,
+    jobTitle: u.jobTitle,
+    department: u.department,
+    accountEnabled: u.accountEnabled ?? true,
+  }));
+}
+
+/**
+ * Fetch group memberships for a specific user (application-level).
+ * Requires `GroupMember.Read.All` application permission.
+ */
+export async function fetchUserGroups(accessToken: string, userId: string): Promise<string[]> {
+  const graphBase = 'https://graph.microsoft.com/v1.0';
+  try {
+    const res = await fetch(
+      `${graphBase}/users/${userId}/memberOf?$select=displayName`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!res.ok) return [];
+    const data: any = await res.json();
+    return (data.value || [])
+      .filter((g: any) => g['@odata.type'] === '#microsoft.graph.group')
+      .map((g: any) => g.displayName);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Map AD group names to HydroBOS roles using the configured mapping.
  */
 export function mapGroupsToRole(
@@ -239,4 +336,114 @@ export async function upsertSsoUser(
   );
 
   return user;
+}
+
+/**
+ * Perform a bulk sync of all users from Microsoft Graph into HydroBOS.
+ * - Creates new SSO users if autoProvision is enabled
+ * - Updates existing SSO users (role, profile, groups)
+ * - Deactivates users disabled in Entra ID
+ * - Returns sync summary
+ */
+export async function bulkSyncUsers(
+  ssoConfig: ISsoConfig
+): Promise<{
+  created: number;
+  updated: number;
+  deactivated: number;
+  skipped: number;
+  errors: string[];
+  total: number;
+}> {
+  const result = { created: 0, updated: 0, deactivated: 0, skipped: 0, errors: [] as string[], total: 0 };
+
+  // Get app-level token
+  const accessToken = await getClientCredentialsToken(ssoConfig);
+
+  // Fetch all users from Graph
+  const graphUsers = await fetchAllGraphUsers(accessToken);
+  result.total = graphUsers.length;
+
+  const groupRoleMap = ssoConfig.groupRoleMap as Map<string, string>;
+
+  for (const graphUser of graphUsers) {
+    try {
+      // Skip service accounts and users without email
+      const email = graphUser.mail || graphUser.userPrincipalName;
+      if (!email || email.startsWith('#') || email.includes('#EXT#')) {
+        result.skipped++;
+        continue;
+      }
+
+      // Fetch group memberships for role mapping
+      let groups: string[] = [];
+      try {
+        groups = await fetchUserGroups(accessToken, graphUser.id);
+      } catch {
+        // Continue without groups
+      }
+
+      const role = mapGroupsToRole(groups, groupRoleMap, ssoConfig.defaultRole);
+      const existingUser = await User.findOne({ entraId: graphUser.id });
+
+      if (existingUser) {
+        // Update existing user
+        const wasActive = existingUser.isActive;
+        existingUser.email = email.toLowerCase();
+        existingUser.displayName = graphUser.displayName;
+        existingUser.jobTitle = graphUser.jobTitle;
+        existingUser.department = graphUser.department;
+        existingUser.groups = groups;
+        existingUser.role = role;
+        existingUser.isActive = graphUser.accountEnabled;
+        await existingUser.save();
+
+        if (wasActive && !graphUser.accountEnabled) {
+          result.deactivated++;
+        } else {
+          result.updated++;
+        }
+      } else if (ssoConfig.autoProvision) {
+        // Create new user
+        await User.create({
+          email: email.toLowerCase(),
+          displayName: graphUser.displayName,
+          authProvider: 'entra_id',
+          entraId: graphUser.id,
+          role,
+          isActive: graphUser.accountEnabled,
+          jobTitle: graphUser.jobTitle,
+          department: graphUser.department,
+          groups,
+          emailVerified: true,
+          inviteAccepted: true,
+        });
+        result.created++;
+      } else {
+        result.skipped++;
+      }
+    } catch (err: any) {
+      result.errors.push(`${graphUser.userPrincipalName}: ${err.message}`);
+    }
+  }
+
+  // Deactivate SSO users that no longer exist in Entra ID
+  const graphIds = graphUsers.map((u) => u.id);
+  const orphanedUsers = await User.find({
+    authProvider: 'entra_id',
+    entraId: { $nin: graphIds, $exists: true, $ne: null },
+    isActive: true,
+  });
+
+  for (const orphan of orphanedUsers) {
+    try {
+      orphan.isActive = false;
+      await orphan.save();
+      result.deactivated++;
+    } catch (err: any) {
+      result.errors.push(`Deactivate ${orphan.email}: ${err.message}`);
+    }
+  }
+
+  return result;
 }

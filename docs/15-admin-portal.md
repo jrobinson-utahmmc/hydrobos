@@ -163,7 +163,9 @@ sequenceDiagram
 
 ### 4. User Management (`/admin` → Users tab)
 
-View, create, and manage user accounts.
+View, create, invite, and manage user accounts. Includes full user directory with search, filtering, and audit trail.
+
+> **Status: ✅ IMPLEMENTED**
 
 #### User List Table
 
@@ -172,11 +174,22 @@ View, create, and manage user accounts.
 | User | Display name + email |
 | Role | Color-coded role badge |
 | Provider | Local or Entra ID |
-| Status | Active/Disabled indicator |
+| Status | Active / Disabled / Pending Invite indicator |
 | Last Login | Date of last authentication |
-| Actions | Enable/Disable toggle |
+| Actions | Edit, Enable/Disable, Resend Invite |
 
-#### Create User Form
+#### Search & Filtering
+
+- **Search** — Debounced text search across display name and email
+- **Role Filter** — Dropdown to filter by any platform role
+- **Status Filter** — Active, Disabled, or Pending Invite
+- **Pagination** — Configurable page size with prev/next controls
+
+#### Create User Flow
+
+Two modes available:
+
+**Direct Create:**
 
 | Field | Type | Validation |
 |-------|------|------------|
@@ -184,8 +197,82 @@ View, create, and manage user accounts.
 | Email | Required | Valid email format |
 | Password | Required | Min 12 chars, uppercase, lowercase, number |
 | Role | Select | Any valid role |
+| Job Title | Optional | — |
+| Department | Optional | — |
 
-**API**: `GET /api/users`, `POST /api/users`, `PATCH /api/users/:id`
+**Invite User:**
+
+| Field | Type | Validation |
+|-------|------|------------|
+| Email | Required | Valid email format |
+| Display Name | Required | — |
+| Role | Select | Defaults to `user` |
+| Job Title | Optional | — |
+| Department | Optional | — |
+
+Invite generates a 7-day secure token and produces an invite URL. The admin can copy the invite link or resend it later. The invited user visits the link, sets their password, and is auto-logged in.
+
+#### Edit User Modal
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Display Name | Text | User's display name |
+| Role | Select | Platform role assignment |
+| Job Title | Optional | — |
+| Department | Optional | — |
+| Phone | Optional | Phone number |
+
+#### Audit Log Panel
+
+Expandable panel showing all user management audit events with:
+- Timestamp and action description
+- Performer (who made the change)
+- Target user
+- Event details (JSON)
+- Auto-cleanup after 1 year (TTL index)
+
+**API**:
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/users` | List users (search, filter, paginate, sort) |
+| GET | `/api/users/:id` | Get single user |
+| POST | `/api/users` | Create user directly |
+| POST | `/api/users/invite` | Send user invitation |
+| POST | `/api/users/invite/resend` | Resend invitation |
+| PATCH | `/api/users/:id` | Update user |
+| DELETE | `/api/users/:id` | Soft-delete / deactivate |
+| GET | `/api/users/audit/logs` | Get audit trail |
+
+---
+
+### 5. Self-Service Account Management
+
+> **Status: ✅ IMPLEMENTED**
+
+Users can manage their own accounts via the Settings page (`/settings`) and public auth flows:
+
+#### Settings Page (Authenticated)
+
+- **Profile Tab** — Update display name, job title, department, phone
+- **Password Tab** — Change password (requires current password, min 12 chars)
+
+#### Public Auth Flows
+
+| Route | Purpose |
+|-------|---------|
+| `/forgot-password` | Request password reset email |
+| `/reset-password?token=...` | Set new password using reset token (1-hour expiry) |
+| `/invite?token=...` | Accept invitation and set password (7-day expiry) |
+
+**API**:
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password with token |
+| POST | `/api/auth/change-password` | Change password (authenticated) |
+| GET | `/api/auth/invite/validate` | Validate invite token |
+| POST | `/api/auth/invite/accept` | Accept invite + set password |
+| PATCH | `/api/auth/profile` | Update own profile |
 
 ---
 
@@ -207,3 +294,17 @@ View, create, and manage user accounts.
 | GET | `/api/auth/sso/status` | Check SSO status | Public |
 | GET | `/api/auth/sso/authorize` | Start OIDC flow | Public |
 | GET | `/api/auth/sso/callback` | Handle OIDC callback | Public |
+| GET | `/api/users` | List users (search, filter, paginate) | Admin |
+| GET | `/api/users/:id` | Get single user | Admin |
+| POST | `/api/users` | Create user | Admin |
+| POST | `/api/users/invite` | Invite user | Admin |
+| POST | `/api/users/invite/resend` | Resend invitation | Admin |
+| PATCH | `/api/users/:id` | Update user | Admin |
+| DELETE | `/api/users/:id` | Soft-delete user | Admin |
+| GET | `/api/users/audit/logs` | Audit trail | Admin |
+| POST | `/api/auth/forgot-password` | Request password reset | Public |
+| POST | `/api/auth/reset-password` | Reset password with token | Public |
+| POST | `/api/auth/change-password` | Change password | Auth |
+| GET | `/api/auth/invite/validate` | Validate invite token | Public |
+| POST | `/api/auth/invite/accept` | Accept invite | Public |
+| PATCH | `/api/auth/profile` | Update own profile | Auth |

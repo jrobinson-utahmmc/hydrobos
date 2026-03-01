@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Puzzle,
-  Settings,
   HelpCircle,
   Droplets,
   ChevronLeft,
@@ -16,7 +15,6 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/' },
   { icon: LayoutGrid, label: 'Dashboards', path: '/dashboards' },
   { icon: Puzzle, label: 'Widget Builder', path: '/widget-builder' },
-  { icon: Settings, label: 'Admin', path: '/admin' },
   { icon: HelpCircle, label: 'Help', path: '/help', badge: 'Soon' },
 ];
 
@@ -29,7 +27,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 bg-gradient-to-br from-slate-900 to-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-slate-900/30">
             <Droplets className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
@@ -57,7 +55,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-500/20'
+                  ? 'bg-gradient-to-r from-slate-800 to-blue-900 text-white shadow-md shadow-slate-900/25'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
               }`
             }

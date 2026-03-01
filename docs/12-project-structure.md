@@ -14,6 +14,8 @@
 
 ## Target Codebase Structure
 
+> **Note:** The target structure below represents the full vision. See **Current Implementation** section below for what's been built through Phase 4. Key deviations from target: Vite + React (instead of Next.js), Express (instead of NestJS), npm workspaces (instead of pnpm + Turborepo).
+
 ```
 hydrobos/
 │
@@ -314,6 +316,138 @@ hydrobos/
 ├── .prettierrc                        # Code formatting
 ├── .gitignore
 └── .env.example                       # Root env variables
+```
+
+---
+
+## Current Implementation (Through Phase 4)
+
+The actual codebase as implemented. Uses **Vite + React + TypeScript** for frontend, **Express + TypeScript** for backend services, **Docker Compose** for local dev, and **npm workspaces** for monorepo management.
+
+```
+hydrobos/
+├── docker-compose.yml                  # Full dev stack: client, gateway, identity, widget, mongo, redis
+├── package.json                        # Root workspace config
+├── README.md
+│
+├── docs/                               # Project documentation (15 docs)
+│   ├── 01-vision-and-objectives.md
+│   ├── ...
+│   └── 15-admin-portal.md
+│
+├── marketing/
+│   └── hydrobos-5-pager.md
+│
+├── packages/
+│   └── shared-types/                   # TypeScript types shared across services
+│       ├── src/
+│       │   ├── index.ts
+│       │   ├── api/
+│       │   │   └── common.ts           # PaginatedResponse, PaginationParams
+│       │   └── entities/
+│       │       ├── auth.ts             # LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, etc.
+│       │       ├── organization.ts     # Organization interface
+│       │       ├── tenant.ts           # Tenant interface
+│       │       ├── user.ts             # User, CreateUserDto, InviteUserDto, AuditLogEntry
+│       │       └── widget.ts           # Widget, Dashboard types
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── client/                             # Vite + React + TypeScript Frontend
+│   ├── Dockerfile                      # Multi-stage build → nginx
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── tsconfig.json
+│   └── src/
+│       ├── App.tsx                      # React Router: public/private/admin routes
+│       ├── main.tsx                     # Entry point
+│       ├── index.css                    # Tailwind + CSS custom properties (black-blue palette)
+│       ├── components/
+│       │   ├── layout/
+│       │   │   ├── AppShell.tsx         # Sidebar + TopBar + main content wrapper
+│       │   │   ├── Sidebar.tsx          # Module navigation (collapsible)
+│       │   │   └── TopBar.tsx           # Search, notifications, user dropdown (Settings, Admin)
+│       │   └── ui/
+│       │       └── ThemeToggle.tsx      # Dark/light mode toggle
+│       ├── contexts/
+│       │   ├── AuthContext.tsx          # Auth state, login/logout/setup, JWT cookie auth
+│       │   └── ThemeContext.tsx         # Theme state, toggle
+│       ├── pages/
+│       │   ├── LoginPage.tsx            # Email/password login + forgot password link
+│       │   ├── SetupPage.tsx            # First-run admin bootstrap wizard
+│       │   ├── ForgotPasswordPage.tsx   # Request password reset
+│       │   ├── ResetPasswordPage.tsx    # Set new password via reset token
+│       │   ├── InviteAcceptPage.tsx     # Accept invitation + set password
+│       │   ├── DashboardPage.tsx        # Main dashboard with widgets
+│       │   ├── DashboardsPage.tsx       # Dashboard listing
+│       │   ├── WidgetBuilderPage.tsx    # Widget template builder
+│       │   ├── AdminPage.tsx            # Admin portal (Organization, Tenants, SSO, Users tabs)
+│       │   └── SettingsPage.tsx         # User settings (Profile, Password tabs)
+│       └── services/
+│           └── api.ts                   # API client (apiRequest, authApi, userApi, ssoApi)
+│
+├── services/
+│   ├── gateway/                        # Express API Gateway (port 5000)
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       ├── index.ts                # Proxy routes: /api/* → identity/widget services
+│   │       └── config/
+│   │           └── index.ts
+│   │
+│   ├── identity/                       # Identity & Auth Service (port 5001)
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       ├── index.ts                # Express app, route mounting
+│   │       ├── config/
+│   │       │   ├── database.ts         # MongoDB connection
+│   │       │   └── index.ts            # Config (JWT secret, Entra ID settings)
+│   │       ├── models/
+│   │       │   ├── User.ts             # User schema (local + SSO, invite/reset tokens)
+│   │       │   ├── Organization.ts     # Organization schema
+│   │       │   ├── Tenant.ts           # Tenant schema
+│   │       │   ├── SsoConfig.ts        # SSO configuration schema
+│   │       │   └── AuditLog.ts         # Audit log schema (TTL: 1 year)
+│   │       ├── routes/
+│   │       │   ├── auth.ts             # Login, logout, setup, forgot/reset password, invite accept, profile
+│   │       │   ├── users.ts            # User CRUD, invite, resend invite, audit logs
+│   │       │   ├── organization.ts     # Organization settings
+│   │       │   ├── tenants.ts          # Tenant CRUD + provisioning
+│   │       │   ├── sso-config.ts       # SSO configuration CRUD
+│   │       │   └── system.ts           # Health check, system status
+│   │       ├── services/
+│   │       │   └── entra.ts            # Entra ID OIDC service
+│   │       └── utils/
+│   │           ├── jwt.ts              # JWT sign/verify
+│   │           └── audit.ts            # Fire-and-forget audit logging utility
+│   │
+│   └── widget/                         # Widget & Dashboard Service
+│       ├── Dockerfile
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── src/
+│           ├── index.ts
+│           ├── config/
+│           │   ├── database.ts
+│           │   └── index.ts
+│           ├── middleware/
+│           │   └── auth.ts
+│           ├── models/
+│           │   └── index.ts
+│           ├── routes/
+│           │   ├── dashboards.ts
+│           │   └── widgets.ts
+│           └── seeds/
+│               └── templates.ts
+│
+└── infrastructure/
+    └── mongo-init/                     # MongoDB initialization scripts
 ```
 
 ---

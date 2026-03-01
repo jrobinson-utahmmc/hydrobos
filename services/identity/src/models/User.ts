@@ -12,10 +12,17 @@ export interface IUser extends Document {
   avatarUrl?: string;
   jobTitle?: string;
   department?: string;
+  phone?: string;
   entraId?: string;
   groups?: string[];
   lastLogin?: Date;
   mfaEnabled?: boolean;
+  inviteToken?: string;
+  inviteExpires?: Date;
+  inviteAccepted?: boolean;
+  resetToken?: string;
+  resetExpires?: Date;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -33,7 +40,8 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: function (this: IUser) {
-        return this.authProvider === 'local';
+        // Password required for local users who have accepted invite (or were directly created)
+        return this.authProvider === 'local' && this.inviteAccepted !== false;
       },
       minlength: 12,
     },
@@ -67,6 +75,27 @@ const userSchema = new Schema<IUser>(
     avatarUrl: String,
     jobTitle: String,
     department: String,
+    phone: String,
+    inviteToken: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    inviteExpires: Date,
+    inviteAccepted: {
+      type: Boolean,
+      default: false,
+    },
+    resetToken: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    resetExpires: Date,
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     entraId: {
       type: String,
       sparse: true,
