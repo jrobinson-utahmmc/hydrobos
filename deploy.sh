@@ -27,6 +27,20 @@ die()  { err "$1"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# ── Detect docker compose command ──
+# Resolves after dependencies are installed; used by all compose calls
+DC=""
+resolve_compose() {
+  if docker compose version &>/dev/null; then
+    DC="docker compose"
+  elif command -v docker-compose &>/dev/null; then
+    DC="docker-compose"
+  else
+    DC=""
+  fi
+}
+resolve_compose
+
 # ══════════════════════════════════════
 #  Parse Arguments
 # ══════════════════════════════════════
@@ -75,8 +89,8 @@ if [[ "$MODE" == "purge" ]]; then
   fi
 
   log "Stopping all containers..."
-  docker compose down --remove-orphans --volumes 2>/dev/null || true
-  docker compose --profile dev-tools down --volumes 2>/dev/null || true
+  $DC down --remove-orphans --volumes 2>/dev/null || docker-compose down --remove-orphans --volumes 2>/dev/null || true
+  $DC --profile dev-tools down --volumes 2>/dev/null || true
 
   log "Removing HydroBOS images..."
   docker images --format '{{.Repository}}:{{.Tag}}' | grep '^hydrobos/' | xargs -r docker rmi -f 2>/dev/null || true
@@ -118,7 +132,7 @@ if [[ "$MODE" == "clean" ]]; then
   log "Clean rebuild requested"
 
   log "Stopping all containers..."
-  docker compose down --remove-orphans 2>/dev/null || true
+  $DC down --remove-orphans 2>/dev/null || docker-compose down --remove-orphans 2>/dev/null || true
 
   log "Removing HydroBOS images..."
   docker images --format '{{.Repository}}:{{.Tag}}' | grep '^hydrobos/' | xargs -r docker rmi -f 2>/dev/null || true
@@ -144,21 +158,29 @@ ensure_apt_updated() {
   fi
 }
 
+# ── Ensure Docker CE apt repo is configured ──
+ensure_docker_repo() {
+  if [[ ! -f /etc/apt/sources.list.d/docker.list ]]; then
+    log "Adding official Docker apt repository..."
+    apt-get install -y -qq ca-certificates curl gnupg lsb-release
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg \
+      | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+    chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+      > /etc/apt/sources.list.d/docker.list
+    apt-get update -qq
+    apt_updated=true
+    ok "Docker repo added"
+  fi
+}
+
 # ── Docker ──
 if ! command -v docker &>/dev/null; then
   log "Installing Docker..."
   ensure_apt_updated
-  apt-get install -y -qq ca-certificates curl gnupg lsb-release
-
-  install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  chmod a+r /etc/apt/keyrings/docker.gpg
-
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-    https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
-    > /etc/apt/sources.list.d/docker.list
-
-  apt-get update -qq
+  ensure_docker_repo
   apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   systemctl enable --now docker
   ok "Docker installed"
@@ -170,10 +192,31 @@ fi
 if ! docker compose version &>/dev/null; then
   log "Installing Docker Compose plugin..."
   ensure_apt_updated
+  ensure_docker_repo
   apt-get install -y -qq docker-compose-plugin
-  ok "Docker Compose plugin installed"
+  if ! docker compose version &>/dev/null; then
+    # Fallback: install standalone binary
+    log "apt install failed — installing standalone docker-compose..."
+    COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | head -1 | cut -d'"' -f4)
+    COMPOSE_VERSION=${COMPOSE_VERSION:-v2.29.1}
+    curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-$(uname -m)" \
+      -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    # Also install as a plugin so `docker compose` works
+    mkdir -p /usr/local/lib/docker/cli-plugins
+    ln -sf /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+    ok "Docker Compose ${COMPOSE_VERSION} installed (standalone)"
+  else
+    ok "Docker Compose plugin installed"
+  fi
 else
   ok "Docker Compose $(docker compose version --short 2>/dev/null || echo 'available')"
+fi
+
+# Re-resolve compose command after potential install
+resolve_compose
+if [[ -z "$DC" ]]; then
+  die "Docker Compose could not be installed. Install it manually and re-run."
 fi
 
 # ── Git ──
@@ -235,7 +278,7 @@ fi
 stale=$(docker ps -aq --filter "name=hydrobos-" 2>/dev/null | wc -l)
 if [[ "$stale" -gt 0 ]]; then
   warn "Found $stale stale HydroBOS container(s) — removing..."
-  docker compose down --remove-orphans 2>/dev/null || true
+  $DC down --remove-orphans 2>/dev/null || true
   ok "Stale containers removed"
 fi
 
@@ -271,10 +314,10 @@ fi
 # ══════════════════════════════════════════════════════════════
 log "Building and starting HydroBOS..."
 
-docker compose build --parallel
+$DC build --parallel
 ok "Images built"
 
-docker compose up -d
+$DC up -d
 ok "Containers started"
 
 # ── Wait for health checks ──
@@ -303,7 +346,7 @@ while ! all_healthy; do
     err "Timed out waiting for services (${MAX_WAIT}s)"
     echo ""
     log "Container status:"
-    docker compose ps
+    $DC ps
     echo ""
     log "Recent logs from unhealthy services:"
     for svc in "${SERVICES[@]}"; do
@@ -408,12 +451,12 @@ echo -e "${GREEN}${BOLD}  ║       🌊 HydroBOS Deployed Successfully     ║$
 echo -e "${GREEN}${BOLD}  ╚══════════════════════════════════════════════╝${NC}"
 echo ""
 echo "  Services:"
-docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || docker compose ps
+$DC ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || $DC ps
 echo ""
 echo "  Quick reference:"
 echo "    Client:    http://localhost:3000"
 echo "    Gateway:   http://localhost:5000"
-echo "    Logs:      docker compose logs -f [service]"
-echo "    Stop:      docker compose down"
+echo "    Logs:      $DC logs -f [service]"
+echo "    Stop:      $DC down"
 echo "    Rebuild:   ./deploy.sh --clean"
 echo ""
