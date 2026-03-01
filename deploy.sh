@@ -350,13 +350,108 @@ log "Building and starting HydroBOS..."
 $DC build --parallel
 ok "Images built"
 
+# ── Start infrastructure first (MongoDB, Redis, Kafka) ──
+log "Starting infrastructure services (MongoDB, Redis, Kafka)..."
+$DC up -d mongodb redis kafka
+
+# Wait specifically for MongoDB — it's the most common failure point
+log "Waiting for MongoDB to become healthy..."
+MONGO_WAIT=0
+MONGO_MAX=90
+MONGO_HEALTHY=false
+while [[ $MONGO_WAIT -lt $MONGO_MAX ]]; do
+  # Check if container is running at all
+  MONGO_STATE=$(docker inspect --format='{{.State.Status}}' hydrobos-mongo 2>/dev/null || echo "missing")
+  MONGO_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' hydrobos-mongo 2>/dev/null || echo "none")
+
+  if [[ "$MONGO_STATE" == "exited" || "$MONGO_STATE" == "dead" ]]; then
+    warn "MongoDB container died — checking logs..."
+    echo ""
+    docker logs --tail 30 hydrobos-mongo 2>&1 || true
+    echo ""
+
+    # Check for common failure: corrupt WiredTiger / lock file
+    if docker logs hydrobos-mongo 2>&1 | grep -qiE "WiredTiger|lock file|DBException|shutting down|aborting"; then
+      warn "MongoDB data appears corrupt — resetting volume..."
+      $DC stop mongodb 2>/dev/null || true
+      docker rm -f hydrobos-mongo 2>/dev/null || true
+      docker volume rm hydrobos_mongo_data 2>/dev/null || true
+      $DC up -d mongodb
+      ok "MongoDB volume reset — restarting container"
+      sleep 5
+      MONGO_WAIT=0
+      continue
+    fi
+
+    # Check for architecture mismatch or image pull failure
+    if docker logs hydrobos-mongo 2>&1 | grep -qiE "exec format error|platform"; then
+      err "MongoDB image is incompatible with this system architecture ($(uname -m))"
+      die "Try changing 'image: mongo:7' to a compatible version in docker-compose.yml"
+    fi
+
+    # Generic restart attempt
+    warn "Attempting to restart MongoDB..."
+    docker rm -f hydrobos-mongo 2>/dev/null || true
+    $DC up -d mongodb
+    sleep 5
+    MONGO_WAIT=$((MONGO_WAIT + 5))
+    continue
+  fi
+
+  if [[ "$MONGO_HEALTH" == "healthy" ]]; then
+    MONGO_HEALTHY=true
+    break
+  fi
+
+  sleep 5
+  MONGO_WAIT=$((MONGO_WAIT + 5))
+  printf "\r  ⏳ MongoDB: %ds / %ds ..." "$MONGO_WAIT" "$MONGO_MAX"
+done
+echo ""
+
+if [[ "$MONGO_HEALTHY" != true ]]; then
+  err "MongoDB failed to become healthy after ${MONGO_MAX}s"
+  echo ""
+  echo -e "${YELLOW}── MongoDB logs ──${NC}"
+  docker logs --tail 40 hydrobos-mongo 2>&1 || true
+  echo ""
+  die "Fix MongoDB issues above and re-run ./deploy.sh"
+fi
+ok "MongoDB healthy"
+
+# Check Redis and Kafka health
+for INFRA_SVC in redis kafka; do
+  INFRA_WAIT=0
+  INFRA_MAX=60
+  while [[ $INFRA_WAIT -lt $INFRA_MAX ]]; do
+    INFRA_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "hydrobos-${INFRA_SVC}" 2>/dev/null || echo "none")
+    [[ "$INFRA_HEALTH" == "healthy" ]] && break
+    INFRA_STATE=$(docker inspect --format='{{.State.Status}}' "hydrobos-${INFRA_SVC}" 2>/dev/null || echo "missing")
+    if [[ "$INFRA_STATE" == "exited" || "$INFRA_STATE" == "dead" || "$INFRA_STATE" == "missing" ]]; then
+      warn "${INFRA_SVC} container is not running — restarting..."
+      docker rm -f "hydrobos-${INFRA_SVC}" 2>/dev/null || true
+      $DC up -d "$INFRA_SVC"
+    fi
+    sleep 5
+    INFRA_WAIT=$((INFRA_WAIT + 5))
+  done
+  if [[ "$INFRA_HEALTH" != "healthy" ]]; then
+    err "${INFRA_SVC} failed to become healthy after ${INFRA_MAX}s"
+    docker logs --tail 20 "hydrobos-${INFRA_SVC}" 2>&1 || true
+    die "Fix ${INFRA_SVC} issues and re-run"
+  fi
+  ok "${INFRA_SVC} healthy"
+done
+
+# ── Start application services ──
+log "Starting application services..."
 $DC up -d
-ok "Containers started"
+ok "All containers started"
 
-# ── Wait for health checks ──
-log "Waiting for services to become healthy..."
+# ── Wait for app health checks ──
+log "Waiting for application services to become healthy..."
 
-SERVICES=("mongodb" "redis" "kafka" "identity" "widget" "seo" "package-manager" "gateway" "client")
+SERVICES=("identity" "widget" "seo" "package-manager" "gateway" "client")
 MAX_WAIT=120
 ELAPSED=0
 
