@@ -458,13 +458,7 @@ ELAPSED=0
 all_healthy() {
   for svc in "${SERVICES[@]}"; do
     status=$(docker inspect --format='{{.State.Health.Status}}' "hydrobos-${svc}" 2>/dev/null || echo "missing")
-    # client has no healthcheck, just check running
-    if [[ "$svc" == "client" ]]; then
-      running=$(docker inspect --format='{{.State.Running}}' "hydrobos-client" 2>/dev/null || echo "false")
-      [[ "$running" != "true" ]] && return 1
-    else
-      [[ "$status" != "healthy" ]] && return 1
-    fi
+    [[ "$status" != "healthy" ]] && return 1
   done
   return 0
 }
@@ -479,7 +473,7 @@ while ! all_healthy; do
     log "Recent logs from unhealthy services:"
     for svc in "${SERVICES[@]}"; do
       status=$(docker inspect --format='{{.State.Health.Status}}' "hydrobos-${svc}" 2>/dev/null || echo "missing")
-      if [[ "$status" != "healthy" && "$svc" != "client" ]]; then
+      if [[ "$status" != "healthy" ]]; then
         echo -e "\n${YELLOW}── ${svc} ──${NC}"
         docker logs --tail 20 "hydrobos-${svc}" 2>&1 || true
       fi
@@ -540,7 +534,7 @@ credentials-file: ${CRED_FILE}
 
 ingress:
   # HydroBOS client (main app)
-  - service: http://localhost:3000
+  - service: http://localhost:80
 CFEOF
 
   ok "Cloudflared config written to /etc/cloudflared/config.yml"
@@ -582,7 +576,7 @@ echo "  Services:"
 $DC ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || $DC ps
 echo ""
 echo "  Quick reference:"
-echo "    Client:    http://localhost:3000"
+echo "    Client:    http://localhost"
 echo "    Gateway:   http://localhost:5000"
 echo "    Logs:      $DC logs -f [service]"
 echo "    Stop:      $DC down"

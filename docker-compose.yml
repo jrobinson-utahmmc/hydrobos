@@ -236,7 +236,7 @@ services:
     environment:
       PORT: "5000"
       NODE_ENV: production
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
       IDENTITY_SERVICE_URL: http://identity:5001
       WIDGET_SERVICE_URL: http://widget:5002
       SEO_SERVICE_URL: http://seo:5003
@@ -268,10 +268,16 @@ services:
     image: hydrobos/client:latest
     container_name: hydrobos-client
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       gateway:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - hydrobos
     restart: unless-stopped
