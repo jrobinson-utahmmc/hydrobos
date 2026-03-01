@@ -28,13 +28,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # ── Detect docker compose command ──
-# Resolves after dependencies are installed; used by all compose calls
+# Prefer docker-compose (standalone) for broader compatibility
 DC=""
 resolve_compose() {
-  if docker compose version &>/dev/null; then
-    DC="docker compose"
-  elif command -v docker-compose &>/dev/null; then
+  if command -v docker-compose &>/dev/null; then
     DC="docker-compose"
+  elif docker compose version &>/dev/null; then
+    DC="docker compose"
   else
     DC=""
   fi
@@ -207,29 +207,17 @@ else
   warn "Could not detect Docker daemon API version — compose may fail if versions mismatch"
 fi
 
-# ── Docker Compose (v2 plugin) ──
-if ! docker compose version &>/dev/null; then
-  log "Installing Docker Compose plugin..."
-  ensure_apt_updated
-  ensure_docker_repo
-  apt-get install -y -qq docker-compose-plugin
-  if ! docker compose version &>/dev/null; then
-    # Fallback: install standalone binary
-    log "apt install failed — installing standalone docker-compose..."
-    COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | head -1 | cut -d'"' -f4)
-    COMPOSE_VERSION=${COMPOSE_VERSION:-v2.29.1}
-    curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-$(uname -m)" \
-      -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    # Also install as a plugin so `docker compose` works
-    mkdir -p /usr/local/lib/docker/cli-plugins
-    ln -sf /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
-    ok "Docker Compose ${COMPOSE_VERSION} installed (standalone)"
-  else
-    ok "Docker Compose plugin installed"
-  fi
+# ── Docker Compose (standalone) ──
+if ! command -v docker-compose &>/dev/null; then
+  log "Installing docker-compose..."
+  COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | head -1 | cut -d'"' -f4)
+  COMPOSE_VERSION=${COMPOSE_VERSION:-v2.29.1}
+  curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-$(uname -m)" \
+    -o /usr/local/bin/docker-compose
+  chmod +x /usr/local/bin/docker-compose
+  ok "docker-compose ${COMPOSE_VERSION} installed"
 else
-  ok "Docker Compose $(docker compose version --short 2>/dev/null || echo 'available')"
+  ok "docker-compose $(docker-compose version --short 2>/dev/null || docker-compose --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'available')"
 fi
 
 # Re-resolve compose command after potential install
