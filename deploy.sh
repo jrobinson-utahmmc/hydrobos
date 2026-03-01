@@ -189,21 +189,22 @@ else
 fi
 
 # ── Docker API version compatibility ──
-# If the CLI is newer than the daemon (e.g. Docker CE CLI + old docker.io daemon),
-# every docker command fails with "client version X.XX is too new. Maximum supported
-# API version is Y.YY". Detect this before anything else runs.
-_docker_probe=$(docker info 2>&1 || true)
-if echo "$_docker_probe" | grep -qi "Maximum supported API version"; then
-  _max_ver=$(echo "$_docker_probe" | grep -oE 'Maximum supported API version is [0-9.]+' | grep -oE '[0-9.]+$')
-  if [[ -n "$_max_ver" ]]; then
-    export DOCKER_API_VERSION="$_max_ver"
-    warn "Docker CLI/daemon API mismatch — pinned DOCKER_API_VERSION=$_max_ver"
-    # Verify it works now
-    if ! docker info &>/dev/null; then
-      die "Docker still not responding after API version pin. Upgrade docker daemon or reinstall docker packages."
-    fi
-    ok "Docker API negotiated successfully"
-  fi
+# The docker CLI and docker compose plugin may have different API versions baked in.
+# If either is newer than the daemon, commands fail with "client version X.XX is too
+# new". We proactively detect the server's max API version and pin it so ALL Docker
+# binaries (CLI, compose plugin, buildx) use the compatible version.
+_server_api=$(docker version --format '{{.Server.APIVersion}}' 2>/dev/null || true)
+
+if [[ -z "$_server_api" ]]; then
+  # docker version itself may have failed due to version mismatch — parse the error
+  _server_api=$(docker version 2>&1 | grep -oE 'Maximum supported API version is [0-9.]+' | grep -oE '[0-9.]+$' || true)
+fi
+
+if [[ -n "$_server_api" ]]; then
+  export DOCKER_API_VERSION="$_server_api"
+  ok "Docker API version pinned to $DOCKER_API_VERSION (daemon max)"
+else
+  warn "Could not detect Docker daemon API version — compose may fail if versions mismatch"
 fi
 
 # ── Docker Compose (v2 plugin) ──
